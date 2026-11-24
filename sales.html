@@ -384,6 +384,7 @@ if(l=='en'){if(!mo)mo=new MutationObserver(()=>{if(lang=='en')run(false)});run(f
 const I={sync:l=>set(l),now:()=>{if(lang=='en')run(false)},get lang(){return lang},tr:s=>lang=='en'?tr(String(s)):s,html:s=>lang=='en'?String(s).replace(/>([^<]+)</g,(m,t)=>'>'+tr(t)+'<'):s,
 wb:wb=>{if(lang!='en')return wb;const N=[],S={};wb.SheetNames.forEach(n=>{const w=wb.Sheets[n];for(const k in w){const c=w[k];if(k[0]=='!'||!c)continue;if(typeof c.v=='string')c.v=tr(c.v);if(c.f)c.f=tr(c.f)}const nn=tr(n);N.push(nn);S[nn]=w});wb.SheetNames=N;wb.Sheets=S;return wb}};
 try{const l=localStorage.getItem('shoplang');if(l=='en')document.addEventListener('DOMContentLoaded',()=>set('en'))}catch(x){}
+return I})()</script><script>if(typeof XLSX==='undefined'){window.XLSX=(function(){
 const te=new TextEncoder(),td=new TextDecoder();
 const ex=s=>String(s).replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g,'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 const cn=i=>{let s='';i++;while(i>0){const m=(i-1)%26;s=String.fromCharCode(65+m)+s;i=Math.floor((i-1)/26)}return s};
