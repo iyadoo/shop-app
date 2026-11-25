@@ -1492,7 +1492,7 @@ let rt=false;R.attach=()=>{if(rt||!R.cl)return;rt=true;R.cl.channel('kv-sync').o
 R.attach();
 const enq=op=>{const i=sbQ.q.findIndex(x=>x.t!='bk'&&x.c==op.c&&x.id==op.id);if(i>=0)sbQ.q.splice(i,1);sbQ.q.push(op);sbQsave();sbFlush()};
 const col=c=>({doc:id=>({set:async o=>{id=String(id);(cache[c]=cache[c]||new Map()).set(id,JSON.parse(JSON.stringify(o)));saveCache();enq({t:'set',c,id,o:JSON.parse(JSON.stringify(o))})},delete:async()=>{id=String(id);(cache[c]=cache[c]||new Map()).delete(id);saveCache();enq({t:'del',c,id})}}),
-onSnapshot:(ok,er)=>{cbs[c]=[ok,er];load(c)}});
+onSnapshot:(ok,er)=>{cbs[c]=[ok,er];if(lc&&lc[c]&&!cache[c]){cache[c]=fromCache(c);overlay(c);emit(c)}load(c)}});
 setInterval(()=>{sbFlush()},15000);window.addEventListener('online',()=>sbFlush());window.addEventListener('offline',()=>{window.SBOFF=true;sbStatus()});
 return{collection:col}}
 async function sbUpload(cl,data){const rows=[];for(const c of Object.keys(data))for(const [id,o] of Object.entries(data[c]||{}))rows.push({coll:c,id:String(id),data:o,updated_at:new Date().toISOString()});for(let i=0;i<rows.length;i+=500){const r=await cl.from('kv').upsert(rows.slice(i,i+500));if(r.error)throw r.error}return rows.length}
@@ -1514,7 +1514,8 @@ function sbModal(){const c=sbCfg()||{},m=$('#m');m.innerHTML=`<div class="box wi
 <label class=mut style="display:block;margin-top:8px">البريد الإلكتروني للمستخدم</label><input id=sbe value="${e(c.email||'')}" autocomplete=off dir=ltr>
 <label class=mut style="display:block;margin-top:8px">كلمة المرور</label><input id=sbp type=password value="${e(c.pw||'')}" autocomplete=off dir=ltr>
 <p id=sbm class=bad></p>${window.SBON?'<h4>النسخ الاحتياطية السحابية</h4><div class=btns><button data-a=sbnow>نسخة احتياطية الآن</button></div><div id=sbl></div>':''}<div class=btns><button class=pri data-a=sbsave>حفظ وربط ونقل البيانات الحالية</button>${c.url?'<button data-a=sboff>فصل الربط</button>':''}<button data-a=mclose>إغلاق</button></div></div>`;m.style.display='flex';if(window.SBON)sbList()}
-(async()=>{let sbE='';try{const c=sbCfg();if(c){let cl=null,er=null;try{cl=await sbClient(c)}catch(x){er=x}
+(async()=>{let sbE='';try{if(sbCfg()){const lc0=JSON.parse(localStorage.getItem(SBCK)||'null');if(lc0&&lc0.invs){for(const k in D)if(lc0[k])D[k]=lc0[k];if(lc0.meta)V.mr=true;render()}}}catch(x){}
+try{const c=sbCfg();if(c){let cl=null,er=null;try{cl=await sbClient(c)}catch(x){er=x}
 if(er&&/invalid login|credentials/i.test(String(er.message||er)))throw er;
 window.SBR={cl,cfg:c};db=sbDb(window.SBR);window.SBON=true;if(!cl){window.SBOFF=true;sbStatus();setTimeout(()=>toast('لا يوجد اتصال بالإنترنت — يعمل البرنامج من النسخة المحلية وسيرفع العمليات عند عودته'),800)}}}catch(x){sbE=String(x&&x.message||x);db=null;window.SBR=null}
 if(!db)try{db=window.claude&&await claude.use('db')}catch(x){db=null}
