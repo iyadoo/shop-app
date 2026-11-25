@@ -1206,7 +1206,7 @@ const EDMAX=30*864e5,canEd=i=>!!i&&Date.now()-i.ts<=EDMAX,isTdy=i=>!!i&&dkey(i.t
 function unlockThen(cb){if(V.unlocked)return cb();const pw=D.meta.pw;if(!pw||!pw.h)return toast('أنشئ كلمة مرور الأقسام أولاً: افتح تبويب المواد');pinVerify('تعديل الفواتير',pw).then(ok=>{if(ok){V.unlocked=true;render(true);cb()}})}
 const LK=['box','items','stock','buy','rep','debt','acc','arv','set'];
 async function sha(s){if(!(window.crypto&&crypto.subtle))return btoa(unescape(encodeURIComponent('shop:'+s)));const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode('shop:'+s));return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('')}
-function gate(tab){if(db&&!V.mr)return toast('جاري التحميل، حاول بعد لحظة');const go=()=>{V.unlocked=true;V.tab=tab;V.inv=null;V.stm=null;render(true);if(tab=='stock')A.pickm();else focusMain()},h=D.meta.pw&&D.meta.pw.h;
+function gate(tab){if(db&&!V.mr)return toast('جاري التحميل، حاول بعد لحظة');const go=()=>{V.unlocked=true;V.tab=tab;V.inv=null;V.stm=null;render(true);focusMain()},h=D.meta.pw&&D.meta.pw.h;
 const pg=(T.find(t=>t[0]==tab)||[])[1]||'';V.kpPage=pg;if(!h){const pr=pinNew('أنشئ رمز الأقسام المحمية');V.kpPage='';return pr.then(async p=>{if(!p)return;if(D.meta.lp&&await sha(p)==D.meta.lp.h){toast('اختر رمزاً مختلفاً عن رمز دخول البرنامج');return gate(tab)}put('meta','pw',{h:await sha(p),n:4});toast('تم إنشاء رمز الإعدادات');go()})}
 const pv=pinVerify('أدخل رمز المرور',D.meta.pw);V.kpPage='';pv.then(ok=>{if(ok)go()})}
 const A={
