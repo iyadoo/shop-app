@@ -1647,4 +1647,78 @@ window.reconRows=()=>{const L=recon(),q=(V.rcq||'').trim().toLowerCase();let A=L
 Object.assign(A,{rcon:()=>{V.rcon=!V.rcon;render(true)},rcf:d=>{V.rcf=d.id||'';render(true)},
 rcx:async()=>{if(typeof XLSX=='undefined')return toast('تعذر تحميل مكتبة Excel');const L=recon().sort((a,b)=>Math.abs(b.df)-Math.abs(a.df));const ws=XLSX.utils.aoa_to_sheet([['رمز البطاقة','الباركود','المادة','مشتريات','مبيعات','مرتجعات','المحسوب','المسجّل','الفرق'],...L.map(x=>[x.it.tag||'',x.it.code||'',x.it.name,x.p,x.s,x.r,x.calc,x.rec,x.df])]);ws['!cols']=[12,16,34,10,10,10,10,10,10].map(w=>({wch:w}));const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'مطابقة المخزون');const buf=XLSX.write(wb,{bookType:'xlsx',type:'array'});try{const x=await claude.use('downloads');if(!x)return toast('الحفظ غير متاح هنا');await x.save({filename:'stock-recon-'+tdy()+'.xlsx',data:new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'})})}catch(x){toast('لم يتم الحفظ')}}});
 })();
-</script></body></html>
+</script><script>/* v172: تصفية جردية (جرد فعلي كامل للمحل) */
+(function(){
+const SK='stk';
+const S=()=>{const s=D.meta&&D.meta[SK];return s&&s.lines?s:null};
+const sv=o=>{V.quiet=true;try{put('meta',SK,o)}finally{V.quiet=false}};
+const nn=x=>Math.round((+x||0)*1000)/1000;
+const dt=t=>{try{return new Date(t).toLocaleString('en-GB',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'})}catch(x){return ''}};
+const tg=i=>i&&i.tag?'#'+e(String(i.tag)):'';
+const big=x=>Math.abs(x.df)>=5||(x.s>0&&Math.abs(x.df)/x.s>=.5);
+function hist(){return Object.entries(D.meta||{}).filter(([k,v])=>k.indexOf('stkh_')==0&&v&&v.end).sort((a,b)=>b[1].end-a[1].end)}
+function calc(){const s=S(),L=[];for(const [id,l] of Object.entries(s.lines)){const i=D.items[id];if(!i)continue;const now=+i.qty||0;L.push({id,i,s:+l.s||0,c:+l.c||0,now,nw:nn((+l.c||0)+(now-(+l.s||0))),df:nn((+l.c||0)-(+l.s||0)),cost:+i.cost||0})}
+const U=Object.entries(D.items).filter(([id,i])=>!s.lines[id]&&(+i.qty||0)!=0).map(([id,i])=>({id,i,now:+i.qty||0,cost:+i.cost||0}));return {L,U}}
+function res(){const s=S();const q=(V.stq||'').trim();if(!q)return '<p class=mut style="margin:6px 2px">اكتب اسم المادة أو رمز البطاقة، أو امسح الباركود — بعدها Enter</p>';const R=spRes(q).slice(0,30);if(!R.length)return '<p class=bad style="margin:6px 2px">ما في مادة بهالاسم أو الرمز</p>';V.stsi=Math.max(0,Math.min(V.stsi||0,R.length-1));
+return R.map(([id,i],k)=>`<div class=kv data-a=stkpick data-id="${id}" style="cursor:pointer;border-radius:8px;padding:6px 8px;${k==V.stsi?'background:rgba(15,118,110,.14);outline:1px solid rgba(15,118,110,.45)':''}"><span>${e(i.name)}<br><small class=mut>${tg(i)} ${e(i.code||'')}</small></span><span>${s&&s.lines[id]?'<b class=ok>✓ معدود '+N(s.lines[id].c)+'</b>':''}</span></div>`).join('')}
+function startCard(){return `<div class=card><h3 style="margin:0 0 6px">📋 تصفية جردية</h3><p class=mut style="margin:4px 0 10px">عدّ كل البضاعة الموجودة فعلياً بالمحل، والبرنامج بيطابق المخزون عليها.</p><ol style="margin:0 0 12px;padding-inline-start:20px;line-height:1.9"><li>اضغط "بدء تصفية جردية جديدة".</li><li>ابحث عن المادة أو امسح الباركود واكبس <b>Enter</b>.</li><li>بتفتح نافذة <b>الكمية الحالية</b>: اكتب العدد الموجود فعلياً واكبس Enter.</li><li>كمّل لكل المواد. الجرد بينحفظ أول بأول، وبتقدر تكمّله بأكثر من يوم.</li><li>لما تخلص اضغط <b>إنهاء الجرد</b> وراجع الفروقات، وبعدها <b>اعتمد التصفية</b>.</li></ol><button class=pri data-a=stkgo>▶ بدء تصفية جردية جديدة</button></div>`}
+function histCard(){const H=hist();if(!H.length)return '';return `<div class=card><h3>سجل التصفيات الجردية</h3>${H.map(([k,h])=>`<div class=kv><span>${dt(h.end)}<br><small class=mut>${h.tot?`معدود ${h.tot.n} مادة · نقص ${N(h.tot.sp)} قطعة (${M(h.tot.sv)}) · زيادة ${N(h.tot.pp)} قطعة (${M(h.tot.pv)})`:''}</small></span><span><button data-a=stkhx data-id="${k}">⬇ Excel</button></span></div>`).join('')}</div>`}
+function countView(){const s=S();const L=Object.entries(s.lines).filter(([id])=>D.items[id]).sort((a,b)=>(b[1].t||0)-(a[1].t||0));const pcs=L.reduce((t,[,l])=>t+(+l.c||0),0);
+return `<div class=card><div class=top><h3 style="margin:0">📋 تصفية جردية — قيد العد</h3><span class=mut>بدأت ${dt(s.start)}</span></div>
+<div class=kv><span>مواد معدودة</span><b>${L.length} من ${Object.keys(D.items).length}</b></div><div class=kv><span>مجموع القطع المعدودة</span><b>${N(pcs)}</b></div>
+<div class=sb><span class=sbi>🔎</span><input id=stq placeholder="ابحث باسم المادة أو رمز البطاقة أو امسح الباركود ثم Enter" autocomplete=off value="${e(V.stq||'')}"></div><div id=stres>${res()}</div>
+<div class=btns style="margin-top:10px"><button class=pri data-a=stkrev>✔ إنهاء الجرد ومراجعة الفروقات</button><button data-a=stkblind>${s.blind?'👁 إظهار الكمية المسجّلة':'🙈 إخفاء الكمية المسجّلة'}</button><button class=bad data-a=stkcancel>إلغاء الجرد</button></div>
+<p class=mut style="margin:8px 2px 0">العد الأعمى (إخفاء الكمية المسجّلة) أدق، لأنك بتعدّ اللي قدامك بدون ما يأثر عليك الرقم.</p></div>
+<div class=card><h3>المواد المعدودة (${L.length})</h3><div class=ptw><table class=ptb><thead><tr><th>رمز البطاقة</th><th>المادة</th><th>المعدود</th>${s.blind?'':'<th>المسجّل</th>'}<th></th></tr></thead><tbody>${L.slice(0,800).map(([id,l])=>{const i=D.items[id];return `<tr><td>${tg(i)}</td><td class=nm>${e(i.name)}</td><td><b>${N(l.c)}</b></td>${s.blind?'':`<td>${N(i.qty)}</td>`}<td><button data-a=stkedit data-id="${id}">تعديل</button> <button data-a=stkdel data-id="${id}">حذف</button></td></tr>`}).join('')||'<tr><td colspan=5 class=mut>لسا ما انعدّت ولا مادة</td></tr>'}</tbody></table></div></div>`}
+function review(){const {L,U}=calc(),md=V.stku||'zero';const sh=L.filter(x=>x.df<0),pl=L.filter(x=>x.df>0),ok=L.length-sh.length-pl.length,bg=L.filter(big);
+const sp=-sh.reduce((t,x)=>t+x.df,0),sv2=-sh.reduce((t,x)=>t+x.df*x.cost,0),pp=pl.reduce((t,x)=>t+x.df,0),pv=pl.reduce((t,x)=>t+x.df*x.cost,0),up=U.reduce((t,x)=>t+x.now,0),uv=U.reduce((t,x)=>t+x.now*x.cost,0);
+const A2=[...L].sort((a,b)=>Math.abs(b.df)-Math.abs(a.df));
+return `<div class=card><div class=top><h3 style="margin:0">📊 مراجعة الفروقات قبل الاعتماد</h3><button data-a=stkx>⬇ Excel</button></div>
+<div class=kv><span>مواد معدودة</span><b>${L.length}</b></div><div class=kv><span>مطابقة تماماً</span><b class=ok>${ok}</b></div>
+<div class=kv><span>نقص (${sh.length} مادة)</span><b class=bad>${N(sp)} قطعة · ${M(sv2)}</b></div><div class=kv><span>زيادة (${pl.length} مادة)</span><b>${N(pp)} قطعة · ${M(pv)}</b></div>
+${bg.length?`<p class=bad style="margin:8px 2px">⚠ ${bg.length} مادة فرقها كبير (5 قطع أو أكثر، أو نص الكمية). يُفضّل تعيد عدها قبل الاعتماد.</p>`:''}
+<p class=mut style="margin:6px 2px">إذا انباعت مادة بعد ما عدّيتها، البرنامج بيحسب البيع تلقائياً، فما بتحتاج تعيد عدها.</p></div>
+<div class=card><h3>المواد اللي ما انعدّت (${U.length} مادة · ${N(up)} قطعة · ${M(uv)})</h3><p class=mut style="margin:2px">شو بدك يصير فيها عند الاعتماد؟</p>
+<div class=btns><button class="${md=='zero'?'on':''}" data-a=stku data-id=zero>تتصفّر (مش موجودة بالمحل)</button><button class="${md=='keep'?'on':''}" data-a=stku data-id=keep>تضل زي ما هي</button></div>
+${U.length?`<div class=ptw style="max-height:260px;overflow:auto"><table class=ptb><thead><tr><th>رمز البطاقة</th><th>المادة</th><th>المسجّل</th><th></th></tr></thead><tbody>${U.slice(0,400).map(x=>`<tr><td>${tg(x.i)}</td><td class=nm>${e(x.i.name)}</td><td class="${x.now<0?'bad':''}">${N(x.now)}</td><td><button data-a=stkedit data-id="${x.id}">عدّها</button></td></tr>`).join('')}</tbody></table></div>`:''}</div>
+<div class=card><h3>الفروقات</h3><div class=ptw><table class=ptb><thead><tr><th>رمز البطاقة</th><th>المادة</th><th>المسجّل وقت العد</th><th>المعدود</th><th>الفرق</th><th>قيمة الفرق</th><th></th></tr></thead><tbody>${A2.slice(0,800).map(x=>`<tr class="${big(x)?'pw':''}"><td>${tg(x.i)}</td><td class=nm>${e(x.i.name)}</td><td>${N(x.s)}</td><td><b>${N(x.c)}</b></td><td class="${x.df<0?'bad':x.df>0?'':'ok'}">${x.df?(x.df>0?'+':'')+N(x.df):'✓'}</td><td>${x.df?M(x.df*x.cost):''}</td><td>${big(x)?`<button data-a=stkre data-id="${x.id}">أعد العد</button>`:''}</td></tr>`).join('')||'<tr><td colspan=7 class=mut>ما في مواد معدودة</td></tr>'}</tbody></table></div>
+<div class=btns style="margin-top:10px"><button data-a=stkback>↩ رجوع للعد</button><button class=pri data-a=stkok>✅ اعتمد التصفية الجردية</button></div></div>`}
+function qty(id,mode){const s=S(),i=D.items[id];if(!s||!i)return;const l=s.lines[id],m=$('#m');
+m.innerHTML=`<div class=box><h3>الكمية الحالية</h3><p style="margin:4px 0"><b>${e(i.name)}</b><br><span class=mut>${tg(i)} ${e(i.code||'')}</span></p>${s.blind?'':`<p class=mut style="margin:4px 0">المسجّل بالبرنامج: ${N(i.qty)}</p>`}${l?`<p style="margin:4px 0">معدود سابقاً: <b>${N(l.c)}</b></p><label>شو بدك تعمل؟<select id=stmode><option value=add ${mode!='set'?'selected':''}>إضافة على المعدود (نفس المادة بمكان ثاني)</option><option value=set ${mode=='set'?'selected':''}>استبدال المعدود بالرقم الجديد</option></select></label>`:''}<label>الكمية الموجودة فعلياً<input id=stqty type=number step=any min=0 inputmode=decimal></label><p id=sterr class=bad style="margin:4px 0;min-height:1em"></p><div class=row><button class=pri id=stok>حفظ (Enter)</button><button id=stno>إلغاء (Esc)</button></div></div>`;
+m.style.display='flex';const inp=$('#stqty'),close=()=>{m.style.display='none';m.innerHTML='';setTimeout(()=>{const q=$('#stq');if(q)q.focus()},30)};
+const ok=()=>{const raw=inp.value.trim(),v=parseFloat(raw);if(raw===''||isNaN(v)||v<0){$('#sterr').textContent='اكتب الكمية (صفر أو أكثر)';inp.focus();return}
+const s2=S();if(!s2)return close();const o=JSON.parse(JSON.stringify(s2)),old=o.lines[id],md=old?(($('#stmode')||{}).value||'add'):'set',now=+D.items[id].qty||0;
+o.lines[id]=old?(md=='add'?{...old,c:nn(old.c+v),t:Date.now()}:{...old,c:nn(v),s:now,t:Date.now()}):{c:nn(v),s:now,t:Date.now(),n:i.name};sv(o);V.stq='';V.stsi=0;toast('✓ '+i.name+' = '+N(o.lines[id].c));close();render(true);setTimeout(()=>{const q=$('#stq');if(q)q.focus()},40)};
+inp.addEventListener('keydown',ev=>{if(ev.key=='Enter'){ev.preventDefault();ev.stopPropagation();ok()}else if(ev.key=='Escape'){ev.preventDefault();ev.stopPropagation();close()}});
+$('#stok').onclick=ok;$('#stno').onclick=close;setTimeout(()=>inp.focus(),20)}
+function pickSel(){const q=(V.stq||'').trim();if(!q)return;const R=spRes(q);if(!R.length)return toast('ما في مادة بهالاسم أو الرمز');const ex=R.find(([,i])=>String(i.code||'').toLowerCase()==q.toLowerCase()||String(i.tag||'')==q);qty((ex||R[Math.min(V.stsi||0,R.length-1)])[0])}
+async function xl(name,rows){if(typeof XLSX=='undefined')return toast('تعذر تحميل مكتبة Excel');const ws=XLSX.utils.aoa_to_sheet(rows);ws['!cols']=[12,16,34,12,12,10,10,12,14].map(w=>({wch:w}));const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'التصفية الجردية');const buf=XLSX.write(wb,{bookType:'xlsx',type:'array'});try{const x=await claude.use('downloads');if(!x)return toast('الحفظ غير متاح هنا');await x.save({filename:name,data:new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'})})}catch(x){toast('لم يتم الحفظ')}}
+const HDR=['رمز البطاقة','الباركود','المادة','المسجّل وقت العد','المعدود','الفرق','التكلفة','قيمة الفرق','ملاحظة'];
+window.stkPage=function(){const s=S();if(!s)return startCard()+histCard();return V.stkr?review():countView()};
+document.addEventListener('input',ev=>{if(ev.target&&ev.target.id=='stq'){V.stq=ev.target.value;V.stsi=0;const b=$('#stres');if(b)b.innerHTML=res()}});
+document.addEventListener('keydown',ev=>{const t=ev.target;if(!t||t.id!='stq')return;if(ev.key=='Enter'){ev.preventDefault();ev.stopPropagation();pickSel()}else if(ev.key=='ArrowDown'||ev.key=='ArrowUp'){ev.preventDefault();ev.stopPropagation();V.stsi=Math.max(0,(V.stsi||0)+(ev.key=='ArrowDown'?1:-1));const b=$('#stres');if(b)b.innerHTML=res()}},true);
+Object.assign(A,{
+stkgo:()=>{sv({id:uid(),start:Date.now(),blind:true,lines:{}});V.stkr=false;V.stq='';render(true);setTimeout(()=>{const q=$('#stq');if(q)q.focus()},40)},
+stkpick:d=>qty(d.id),
+stkedit:d=>qty(d.id,'set'),
+stkre:d=>qty(d.id,'set'),
+stkdel:d=>{const s=S(),i=D.items[d.id];if(!s||!s.lines[d.id])return;ask('حذف '+(i?i.name:'المادة')+' من الجرد؟',[],()=>{const o=JSON.parse(JSON.stringify(S()));delete o.lines[d.id];sv(o);render(true)})},
+stkblind:()=>{const o=JSON.parse(JSON.stringify(S()));o.blind=!o.blind;sv(o);render(true)},
+stkcancel:()=>ask('إلغاء التصفية الجردية',[['x','رح ينمسح كل العد اللي عملته، والمخزون ما بيتغير. تأكيد؟','ro','نعم']],()=>{V.stkr=false;del('meta',SK)}),
+stkrev:()=>{const s=S();if(!s||!Object.keys(s.lines).length)return toast('لسا ما عدّيت ولا مادة');V.stkr=true;V.stku=V.stku||'zero';render(true);window.scrollTo(0,0)},
+stkback:()=>{V.stkr=false;render(true)},
+stku:d=>{V.stku=d.id;render(true)},
+stkx:()=>{const {L,U}=calc(),md=V.stku||'zero';xl('stocktake-review-'+tdy()+'.xlsx',[HDR,...[...L].sort((a,b)=>Math.abs(b.df)-Math.abs(a.df)).map(x=>[x.i.tag||'',x.i.code||'',x.i.name,x.s,x.c,x.df,x.cost,nn(x.df*x.cost),big(x)?'فرق كبير':'']),...U.map(x=>[x.i.tag||'',x.i.code||'',x.i.name,x.now,'',md=='zero'?-x.now:0,x.cost,md=='zero'?nn(-x.now*x.cost):0,'ما انعدّت'])])},
+stkhx:d=>{const h=D.meta[d.id];if(!h)return;xl('stocktake-'+new Date(h.end).toISOString().slice(0,10)+'.xlsx',[HDR,...(h.lines||[]).map(r=>[r[1],r[2],r[3],r[4],r[5],r[6],r[7],nn(r[6]*r[7]),'']),...(h.unc||[]).map(r=>[r[1],r[2],r[3],r[4],'',h.mode=='zero'?-r[4]:0,r[5],h.mode=='zero'?nn(-r[4]*r[5]):0,'ما انعدّت'])])},
+stkok:()=>{const {L,U}=calc(),md=V.stku||'zero',n=L.filter(x=>x.nw!=x.now).length+(md=='zero'?U.length:0);
+ask('اعتماد التصفية الجردية',[['x','رح تتعدّل كمية '+n+' مادة لتطابق الجرد الفعلي'+(md=='zero'?' (منها '+U.length+' مادة ما انعدّت رح تتصفّر)':'')+'. هالخطوة ما بترجع. تأكيد؟','ro','نعم']],()=>{
+const s=S();if(!s)return;const c=calc(),sh=c.L.filter(x=>x.df<0),pl=c.L.filter(x=>x.df>0);
+const tot={n:c.L.length,sp:-sh.reduce((t,x)=>t+x.df,0),sv:-sh.reduce((t,x)=>t+x.df*x.cost,0),pp:pl.reduce((t,x)=>t+x.df,0),pv:pl.reduce((t,x)=>t+x.df*x.cost,0),u:md=='zero'?c.U.length:0};
+V.quiet=true;try{for(const x of c.L)if(x.nw!=x.now)put('items',x.id,{...D.items[x.id],qty:x.nw});if(md=='zero')for(const u of c.U)put('items',u.id,{...D.items[u.id],qty:0});
+put('meta','stkh_'+s.id,{start:s.start,end:Date.now(),mode:md,tot,lines:c.L.map(x=>[x.id,x.i.tag||'',x.i.code||'',x.i.name,x.s,x.c,x.df,x.cost]),unc:c.U.map(u=>[u.id,u.i.tag||'',u.i.code||'',u.i.name,u.now,u.cost])});del('meta',SK)}finally{V.quiet=false}
+V.stkr=false;V.stq='';toast('✅ تم اعتماد التصفية الجردية — المخزون صار مطابق للجرد الفعلي');render(true);if(typeof cloudBackup=='function')try{cloudBackup('تصفية جردية')}catch(x){}})}
+});
+try{if(!T.find(t=>t[0]=='stk')){T.push(['stk','تصفية جردية',()=>stkPage()]);if(Array.isArray(SUB)&&!SUB.includes('stk')&&MODE!='pos')SUB.push('stk');NI.stk=NI.stock;TABP.stk='stk';if(!LK.includes('stk'))LK.push('stk');const k=T.findIndex(t=>t[0]=='stock');if(k>=0){const f=T[k][2];T[k][2]=()=>`<div class=btns><button class=pri data-a=tab data-id=stk>📋 تصفية جردية — جرد فعلي لكل المحل${S()?' (في جرد مفتوح)':''}</button></div>`+f()}}}catch(x){console.error('stk init',x)}
+})();
+</script>
+</body></html>
