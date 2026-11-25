@@ -1,1 +1,1 @@
-{"version": 161, "sha256": "0ce5a3922bfb15fe25adfa8665429d0276d3ed61defa45f3060bc8232546a1e7", "notes": "فتح أسرع: عرض البيانات المحفوظة فوراً بدل انتظار السحابة"}
+{"version": 162, "sha256": "bf8d2d139ae2a8ffcbbd165ffeba6d458afdcc15666abcf64f693d02f5c88aea", "notes": "فصل البرنامج: POS (بيع + فواتير اليوم) و ACC (كامل)"}
