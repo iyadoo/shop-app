@@ -1210,7 +1210,7 @@ function gate(tab){if(db&&!V.mr)return toast('جاري التحميل، حاول
 const pg=(T.find(t=>t[0]==tab)||[])[1]||'';V.kpPage=pg;if(!h){const pr=pinNew('أنشئ رمز الأقسام المحمية');V.kpPage='';return pr.then(async p=>{if(!p)return;if(D.meta.lp&&await sha(p)==D.meta.lp.h){toast('اختر رمزاً مختلفاً عن رمز دخول البرنامج');return gate(tab)}put('meta','pw',{h:await sha(p),n:4});toast('تم إنشاء رمز الإعدادات');go()})}
 const pv=pinVerify('أدخل رمز المرور',D.meta.pw);V.kpPage='';pv.then(ok=>{if(ok)go()})}
 const A={
-tab:d=>{if(MODE=='pos'&&!POSOK.includes(d.id))d={...d,id:'pos'};const nd=TABP[d.id];if(nd&&!can(nd))return noPerm();V.rg=false;V.sv=null;V.rv=null;if(LK.includes(d.id)&&!V.unlocked)return gate(d.id);V.sa=false;V.pv=null;V.ei=null;V.ec=null;V.tab=d.id;V.inv=null;V.stm=null;V.cl=null;render(true);if(d.id=='stock')A.pickm();else focusMain()},
+tab:d=>{if(MODE=='pos'&&!POSOK.includes(d.id))d={...d,id:'pos'};const nd=TABP[d.id];if(nd&&!can(nd))return noPerm();V.rg=false;V.sv=null;V.rv=null;if(LK.includes(d.id)&&!V.unlocked)return gate(d.id);V.sa=false;V.pv=null;V.ei=null;V.ec=null;V.tab=d.id;V.inv=null;V.stm=null;V.cl=null;render(true);focusMain()},
 wait:()=>{if(V.pe)return toast('أنت تعدّل فاتورة سابقة — ادفع للحفظ أو الغِ التعديل');if(!V.cart.length)return toast('الفاتورة فارغة');put('holds',uid(),{ts:Date.now(),cart:V.cart,ret:V.ret});V.cart=[];V.ret=false;V.sel=-1;toast('تم تعليق الفاتورة — ابدأ فاتورة جديدة');render(true)},
 resume:d=>{const h=D.holds[d.id];if(!h)return;if(V.cart.length)put('holds',uid(),{ts:Date.now(),cart:V.cart,ret:V.ret});V.cart=h.cart.map(l=>({...l}));V.ret=!!h.ret;V.sel=-1;del('holds',d.id)},
 delhold:d=>ask('حذف الفاتورة المعلّقة؟',[],()=>del('holds',d.id)),
