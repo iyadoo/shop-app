@@ -500,7 +500,7 @@ html[dir=ltr] :is(#main,#m) table.xl tr>:last-child{border-right:0}
 :is(#main,#m) table.xl tr:hover>td{background:color-mix(in srgb,var(--pri) 9%,var(--card))}
 :is(#main,#m) table.xl td.xn,:is(#main,#m) table.xl th.xn{text-align:left;direction:ltr;white-space:nowrap;font-variant-numeric:tabular-nums}
 :is(#main,#m) table.xl td.xneg{color:var(--bad);font-weight:600}
-:is(#main,#m) table.xl tr.xt>*{position:static;background:color-mix(in srgb,var(--pri) 8%,var(--card));font-weight:800;border-top:3px double color-mix(in srgb,var(--pri) 45%,transparent);border-bottom:0;white-space:nowrap}
+:is(#main,#m) table.xl tr.xt>*{position:static;color:var(--fg);background:color-mix(in srgb,var(--pri) 8%,var(--card));font-weight:800;border-top:3px double color-mix(in srgb,var(--pri) 45%,transparent);border-bottom:0;white-space:nowrap}
 :is(#main,#m) table.xl td.nm,:is(#main,#m) table.xl td:not(.xn){min-width:60px}
 :is(#main,#m) table.xl button{padding:4px 10px;font-size:12.5px}
 :is(#main,#m) table.xl input,:is(#main,#m) table.xl select{margin:0;padding:6px 8px}
@@ -680,7 +680,7 @@ return `<details class=card data-k=g${gid||'_'}${op('g'+(gid||'_'))}><summary>�
 const un=by[''],h=[...Object.keys(G),''].map(grp).join('')+(un?`<details class=card data-k=u${op('u')}><summary>مواد بدون صنف (${un.length})</summary>${itm(un)}</details>`:'');return h||'<p class=mut>لا توجد نتائج</p>'};
 function items(){return `<div class=btns><button class=pri data-a=addgrp>+ مجموعة جديدة</button><button class=pri data-a=addcat>+ صنف جديد</button><button class=pri data-a=additem>+ مادة جديدة</button><button data-a=tagall>ترقيم المواد (رمز البطاقة)</button><button data-a=chpw>تغيير كلمة المرور</button></div><div class=btns><button data-a=xdl>تنزيل نموذج Excel</button><button class=pri data-a=xup>رفع من Excel</button><button data-a=xpaste>لصق من Excel</button></div><div class=card><div class=sb><span class=sbi><svg viewBox="0 0 24 24" width="22" height="22" fill=none stroke=currentColor stroke-width=2 stroke-linecap=round stroke-linejoin=round><circle cx=11 cy=11 r=7 /><path d="M20 20l-3.6-3.6"/></svg></span><input id=iq data-nav=itm placeholder="ابحث عن مادة (الاسم أو الباركود)" value="${e(V.iq||'')}" autocomplete=off><button class=sbx data-a=clrsb data-for=iq title="مسح البحث" tabindex=-1>×</button></div></div><div id=il>${itemsList()}</div>`}
 const sRows=()=>{const q=(V.sqq||'').trim();return Object.entries(D.items).filter(([,i])=>!q||(i.name+' '+(i.code||'')+' '+(i.tag||'')).toLowerCase().includes(q.toLowerCase())).sort((a,b)=>a[1].name.localeCompare(b[1].name,'ar')).map(([id,i])=>`<tr data-nr=stk data-a=cnt data-id=${id}><td>${e(i.name)}<br><small>${i.tag?'#'+e(i.tag)+' · ':''}${e((D.cats[i.cat]||{}).name||'بدون صنف')}${i.code?' · '+e(i.code):''}</small></td><td class="${(i.qty||0)<=(i.min||0)?'bad':''}">${N(i.qty)}</td><td>${M((i.qty||0)*(i.cost||0))}</td><td><button class=pri data-a=cnt data-id=${id}>جرد</button></td></tr>`).join('')||'<tr><td class=mut>لا توجد مواد</td></tr>'};
-function stock(){return jrCard()+stock0()}
+function stock(){return (window.astCard?astCard():jrCard())+stock0()}
 function stock0(){let c=0,s=0;const g={};for(const [id,i] of Object.entries(D.items)){(g[i.cat||'']=g[i.cat||'']||[]).push([id,i]);c+=(i.qty||0)*(i.cost||0);s+=(i.qty||0)*(i.price||0)}
 const ks=[...Object.keys(D.cats),''].filter(k=>g[k]),nm=k=>k?D.cats[k].name:'بدون صنف',st=L=>({n:L.length,q:L.reduce((t,[,i])=>t+(i.qty||0),0),c:L.reduce((t,[,i])=>t+(i.qty||0)*(i.cost||0),0)});
 if(!V.sm)return '<div class=card><p>اختر طريقة الجرد للبدء</p><button class=pri data-a=pickm>اختيار طريقة الجرد</button></div>';
@@ -1533,4 +1533,68 @@ new MutationObserver(()=>{if(!q)q=requestAnimationFrame(fx)}).observe(document.d
 </script><script>(function(){const isN=t=>t instanceof HTMLInputElement&&!t.readOnly&&!t.disabled&&(t.type=='number'||t.inputMode=='decimal'||t.inputMode=='numeric');
 document.addEventListener('focusin',ev=>{const t=ev.target;if(!isN(t))return;if(!t.placeholder)t.placeholder='0';t.dataset.sf=1;setTimeout(()=>{try{if(document.activeElement===t)t.select()}catch(x){}},0)},true);
 document.addEventListener('mouseup',ev=>{const t=ev.target;if(t&&t.dataset&&t.dataset.sf){delete t.dataset.sf;ev.preventDefault()}},true);
-document.addEventListener('keydown',ev=>{const t=ev.target;if(t&&t.dataset)delete t.dataset.sf;if(isN(t)&&ev.key=='Delete'&&!ev.ctrlKey){t.value='';t.dispatchEvent(new Event('input',{bubbles:true}));ev.preventDefault()}},true)})();</script></body></html>
+document.addEventListener('keydown',ev=>{const t=ev.target;if(t&&t.dataset)delete t.dataset.sf;if(isN(t)&&ev.key=='Delete'&&!ev.ctrlKey){t.value='';t.dispatchEvent(new Event('input',{bubbles:true}));ev.preventDefault()}},true)})();</script><script>/* v163: مساعد الجرد الذكي (صوت + تعلّم + قوائم) */
+(function(){
+const AST=window.AST={on:false,rec:null,live:'',pick:{}};
+const FILL=/(^|\s)(الكميه|كميه|عدد|حبات|حبه|حبتين|قطعه|قطع|الجرد|جرد|رمز|كود|المادة|ماده|بطاقه)(?=\s|$)/g;
+const W={'صفر':0,'واحد':1,'وحده':1,'وحد':1,'اثنين':2,'اتنين':2,'ثنتين':2,'تنتين':2,'اثنتين':2,'اثنان':2,'ثلاث':3,'ثلاثه':3,'تلات':3,'تلاته':3,'اربع':4,'اربعه':4,'خمس':5,'خمسه':5,'ست':6,'سته':6,'سبع':7,'سبعه':7,'ثمان':8,'ثماني':8,'ثمانيه':8,'تمن':8,'تمنه':8,'تمانيه':8,'ثمنيه':8,'تسع':9,'تسعه':9,'عشر':10,'عشره':10,'حدعش':11,'احدعش':11,'اطنعش':12,'طنعش':12,'اثنعش':12,'ثلطعش':13,'تلطعش':13,'اربعطعش':14,'خمسطعش':15,'ستطعش':16,'سبعطعش':17,'ثمنطعش':18,'تمنطعش':18,'تسعطعش':19,'عشرين':20,'ثلاثين':30,'تلاتين':30,'اربعين':40,'خمسين':50,'ستين':60,'سبعين':70,'ثمانين':80,'تمانين':80,'تسعين':90,'ميه':100,'مئه':100,'ميتين':200};
+function arNum(s){const t=s.split(' '),o=[];let g=null;const v=w=>W[w]!=null?W[w]:(w.length>2&&w[0]=='و'&&W[w.slice(1)]!=null?W[w.slice(1)]:null);
+for(let i=0;i<t.length;i++){const w=t[i],n=v(w);if(n!=null&&(g==null||w[0]=='و'||t[i-1]=='و')){g=(g||0)+n;continue}if(w=='و'&&g!=null&&i+1<t.length&&v(t[i+1])!=null)continue;if(g!=null){o.push(String(g));g=null}if(n!=null){g=n;continue}o.push(w)}if(g!=null)o.push(String(g));return o.join(' ')}
+const jal=()=>(D.meta.jal&&D.meta.jal.m)||{};
+const lines=()=>Object.entries(D.meta).filter(([k])=>k.startsWith('js_')).map(([k,v])=>({k,...v})).sort((a,b)=>a.ts-b.ts);
+const learn=(rest,id)=>{if(!rest||!id)return;const m={...jal(),[rest]:id},ks=Object.keys(m);if(ks.length>600)ks.slice(0,ks.length-600).forEach(k=>delete m[k]);put('meta','jal',{m})};
+function resolve(rest){const A=jal();if(A[rest]&&D.items[A[rest]])return{id:A[rest],c:[A[rest]],how:'تعلّم'};
+for(const [id,i] of Object.entries(D.items)){if(String(i.tag||'')==rest||(i.code&&jNz(i.code)==rest))return{id,c:[id],how:'رمز'}}
+const c=jCands(rest),ok=c.length&&c[0][1]>=50&&(c.length==1||c[0][1]>c[1][1]);return{id:ok?c[0][0]:null,c:c.slice(0,6).map(x=>x[0]),how:ok?'مطابقة':''}}
+function beep(ok){try{const C=window.__ac||(window.__ac=new (window.AudioContext||window.webkitAudioContext)()),o=C.createOscillator(),g=C.createGain(),t=C.currentTime;o.frequency.value=ok?1046:330;o.type='sine';g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(.12,t+.01);g.gain.exponentialRampToValueAtTime(.0001,t+(ok?.12:.3));o.connect(g);g.connect(C.destination);o.start(t);o.stop(t+.35)}catch(x){}}
+function addText(raw){let s=arNum(jNz(raw));if(!s)return;
+if(/^(تراجع|امسح|الغي|الغاء|احذف)( اخر| الاخير| اخر وحده| اخر سطر)?$/.test(s)){const L=lines();if(L.length){del('meta',L[L.length-1].k);toast('تم حذف آخر سطر')}return render(true)}
+s=s.replace(FILL,' ').replace(/[=:×x]/g,' ').replace(/\s+/g,' ').trim();
+const segs=s.split(/(?<=\d)\s+(?=[^\d\s%.])/).map(x=>x.trim()).filter(Boolean);let okAll=true;
+V.quiet=true;try{for(const seg of segs){const nums=seg.match(/\d+(?:\.\d+)?/g)||[];let q=1,rest=seg;
+if(nums.length&&resolve(seg).how!='رمز'){const last=nums[nums.length-1];if(nums.length>1||seg.replace(last,'').trim()){const p=seg.lastIndexOf(last);q=+last;rest=(seg.slice(0,p)+' '+seg.slice(p+last.length)).replace(/\s+/g,' ').trim()}}
+if(!rest)continue;const r=resolve(rest);if(!r.id)okAll=false;
+put('meta','js_'+uid(),{t:raw.length>80?raw.slice(0,80):raw,rest,q,id:r.id,c:r.c,how:r.how,ts:Date.now(),by:V.staff?V.staff.name:''})}}finally{V.quiet=false}
+beep(okAll);render(true);const f=document.getElementById('jsi');if(f)f.focus()}
+window.astCard=function(){const L=lines(),un=L.filter(l=>!l.id||!D.items[l.id]),agg={};
+for(const l of L)if(l.id&&D.items[l.id]){const a=agg[l.id]||(agg[l.id]={q:0,n:0});a.q+=+l.q||0;a.n++}
+const G=grpOf(),cats={};for(const id of Object.keys(agg)){const c=D.items[id].cat||'';(cats[c]=cats[c]||[]).push(id)}
+if(V.jsU)for(const c of Object.keys(cats))for(const [id,i] of Object.entries(D.items))if((i.cat||'')==c&&!agg[id])cats[c].push(id);
+const cn=c=>c&&D.cats[c]?D.cats[c].name+(D.cats[c].code?' ('+D.cats[c].code+')':''):'بدون صنف',gnm=c=>{const g=c&&D.cats[c]&&D.cats[c].grp;return g&&G[g]?gN(G[g]):''};
+const ord=Object.keys(cats).sort((a,b)=>(gnm(a)+cn(a)).localeCompare(gnm(b)+cn(b),'ar'));
+const SR=!!(window.SpeechRecognition||window.webkitSpeechRecognition);
+let tc=0,ti=0;const catT=ord.map(c=>{const ids=cats[c].sort((a,b)=>(+D.items[a].tag||0)-(+D.items[b].tag||0));let sq=0,sr=0;const rows=ids.map(id=>{const i=D.items[id],a=agg[id],q=a?a.q:null,df=q==null?null:q-(i.qty||0);if(q!=null){sq+=q;ti++}sr+=i.qty||0;return `<tr class="${q==null?'mut':''}"><td>${i.tag?'#'+e(i.tag):''}</td><td class=nm>${e(i.name)}</td><td>${N(i.qty||0)}</td><td>${q==null?'—':N(q)}</td><td class="${df==null?'':df<0?'bad':df>0?'ok':''}">${df==null?'—':(df>0?'+':'')+N(df)}</td></tr>`}).join('');tc+=sq;
+return `<h4 style="margin:14px 0 4px">📂 ${gnm(c)?e(gnm(c))+' ← ':''}${e(cn(c))} <small class=mut>(${ids.filter(id=>agg[id]).length} مادة معدودة)</small></h4><div class=ptw><table class=ptb><thead><tr><th>رمز البطاقة</th><th>المادة</th><th>المسجّل</th><th>المعدود</th><th>الفرق</th></tr></thead><tbody>${rows}<tr><th></th><th>مجموع الصنف</th><th>${N(sr)}</th><th>${N(sq)}</th><th>${N(sq-sr)}</th></tr></tbody></table></div>`}).join('');
+const dl=`<datalist id=jsdl>${Object.entries(D.items).map(([id,i])=>`<option value="${i.tag?'#'+e(i.tag)+' ':''}${e(i.name)}">`).join('')}</datalist>`;
+const unT=un.length?`<h4 style="margin:14px 0 4px" class=bad>⚠ يحتاج تأكيد (${un.length})</h4><div class=ptw><table class=ptb><thead><tr><th>اللي انقال/انكتب</th><th>الكمية</th><th>اختر المادة الصحيحة</th><th></th></tr></thead><tbody>${un.map(l=>`<tr><td title="${e(l.t)}"><b>${e(l.rest||l.t)}</b></td><td>${N(l.q)}</td><td>${(l.c||[]).filter(id=>D.items[id]).length?`<select onchange="AST.set('${l.k}',this.value)"><option value="">— اختر —</option>${l.c.filter(id=>D.items[id]).map(id=>`<option value="${id}">${D.items[id].tag?'#'+e(D.items[id].tag)+' ':''}${e(D.items[id].name)}</option>`).join('')}</select>`:''}<input list=jsdl placeholder="أو ابحث عن المادة…" onchange="AST.setN('${l.k}',this.value)" style="margin-top:4px"></td><td><button data-a=jsdel data-id=${l.k}>حذف</button></td></tr>`).join('')}</tbody></table></div>`:'';
+const last=L.slice(-8).reverse().map(l=>{const it=l.id&&D.items[l.id];return `<div class=kv><span>${it?'✅':'⚠️'} <b>${N(l.q)}</b> × ${it?(it.tag?'#'+e(it.tag)+' ':'')+e(it.name):'<span class=bad>'+e(l.rest||l.t)+'</span>'}${l.how?` <small class=mut>(${e(l.how)})</small>`:''}</span><span><button data-a=jsdel data-id=${l.k} title="حذف">✕</button></span></div>`}).join('');
+return `<div class=card><div class=top><h3 style="margin:0">🎙️ مساعد الجرد الذكي</h3><small class=mut>${Object.keys(jal()).length} اسم متعلَّم</small></div>
+<p class=mut style="margin:4px 0 8px">احكي أو اكتب اسم المادة أو جزء منه أو رمز البطاقة أو الباركود، وبعدها العدد. مثال: <b>قميص جروان خمسة</b> · <b>1005 ثلاثة</b> · <b>بدلة جراند 2 بنطلون جينز 4</b>. إذا ما حكيت عدد بتنحسب 1 (مفيد مع قارئ الباركود). قول <b>تراجع</b> لحذف آخر سطر.</p>
+<div class=btns style="align-items:stretch"><button class="${AST.on?'bad':'pri'}" data-a=jsmic ${SR?'':'disabled title="المتصفح ما بيدعم الصوت"'} style="flex:0 0 auto;min-width:130px">${AST.on?'⏹ إيقاف الاستماع':'🎤 ابدأ بالصوت'}</button><input id=jsi placeholder="اكتب هون واكبس Enter — أو امسح الباركود" autocomplete=off onkeydown="if(event.key=='Enter'){AST.add(this.value);this.value=''}" style="flex:1;margin:0"></div>
+<p id=jslive class=mut style="min-height:18px;margin:4px 0">${AST.on?'🔴 عم بسمع… '+e(AST.live||''):SR?'':'الصوت مش مدعوم بهاد المتصفح — استعمل Edge أو Chrome، وتأكد إنه في ميكروفون.'}</p>
+<div class=btns><button data-a=jsai>🤖 مطابقة ذكية للي ما تطابق</button><button data-a=jsu class="${V.jsU?'on':''}">${V.jsU?'✓ ':''}إظهار غير المعدودة بنفس الأصناف</button><button data-a=jsx>⬇ Excel</button><button data-a=jsnew>🗑 جلسة جديدة</button></div>
+<div class=kv><span>سطور الجلسة</span><b>${L.length}</b></div><div class=kv><span>مواد معدودة</span><b>${ti}</b></div><div class=kv><span>مجموع القطع المعدودة</span><b>${N(tc)}</b></div>
+${last?`<h4 style="margin:12px 0 4px">آخر شي انضاف</h4>${last}`:''}${unT}${catT}${dl}</div>`};
+AST.add=t=>addText(t);
+AST.set=(k,id)=>{const l=D.meta[k];if(!l||!id||!D.items[id])return;put('meta',k,{...l,id,how:'يدوي'});learn(l.rest,id);beep(true);render(true)};
+AST.setN=(k,v)=>{v=String(v||'').trim();const m=v.match(/^#(\S+)\s/),id=Object.keys(D.items).find(id=>m?String(D.items[id].tag)==m[1]:D.items[id].name==v);if(id)AST.set(k,id);else toast('ما لقيت هالمادة')};
+function micStart(){const SR=window.SpeechRecognition||window.webkitSpeechRecognition;if(!SR)return toast('الصوت مش مدعوم هون');const r=new SR();r.lang='ar-JO';r.continuous=true;r.interimResults=true;
+r.onresult=ev=>{let live='';for(let i=ev.resultIndex;i<ev.results.length;i++){const x=ev.results[i];if(x.isFinal)addText(x[0].transcript);else live+=x[0].transcript}AST.live=live;const p=document.getElementById('jslive');if(p)p.textContent='🔴 عم بسمع… '+live};
+r.onerror=ev=>{if(ev.error=='not-allowed'||ev.error=='service-not-allowed'){AST.on=false;toast('اسمح للبرنامج يستعمل الميكروفون');render(true)}else if(ev.error=='audio-capture'){AST.on=false;toast('ما في ميكروفون موصول');render(true)}else if(ev.error=='network'){toast('الصوت بحتاج إنترنت')}};
+r.onend=()=>{if(AST.on)try{r.start()}catch(x){}};AST.rec=r;AST.on=true;try{r.start()}catch(x){}render(true)}
+Object.assign(A,{
+jsmic:()=>{if(AST.on){AST.on=false;try{AST.rec&&AST.rec.stop()}catch(x){}AST.live='';render(true)}else micStart()},
+jsdel:d=>{del('meta',d.id);render(true)},
+jsu:()=>{V.jsU=!V.jsU;render(true)},
+jsnew:()=>ask('جلسة جرد جديدة',[['x','رح ينمسح كل اللي انعدّ بالجلسة الحالية ('+lines().length+' سطر). الأسماء اللي تعلّمها المساعد بتضل محفوظة. تأكيد؟','ro','نعم']],()=>{V.quiet=true;try{lines().forEach(l=>del('meta',l.k))}finally{V.quiet=false}render(true)}),
+jsai:async()=>{const un=lines().filter(l=>!l.id||!D.items[l.id]);if(!un.length)return toast('كل السطور متطابقة');const rows=un.map(l=>({t:l.rest+' '+l.q,c:l.c||[]}));toast('جاري المطابقة بالذكاء…');let r=null;try{r=await jAi(rows)}catch(x){}if(!r)return toast('الذكاء الاصطناعي متاح بنسخة الويب (رابط Claude) — هون بتشتغل المطابقة العادية والتعلّم');let n=0;r.forEach(a=>{const l=un[+a.i];if(l&&a.id&&D.items[a.id]){put('meta',l.k,{...D.meta[l.k],id:a.id,how:'ذكاء'});learn(l.rest,a.id);n++}});toast('الذكاء طابق '+n+' من '+un.length);render(true)},
+jsx:async()=>{if(typeof XLSX=='undefined')return toast('تعذر تحميل مكتبة Excel');const L=lines(),agg={};L.forEach(l=>{if(l.id&&D.items[l.id])agg[l.id]=(agg[l.id]||0)+(+l.q||0)});const wb=XLSX.utils.book_new(),add=(n,a,w)=>{const x=XLSX.utils.aoa_to_sheet(a);x['!cols']=w.map(c=>({wch:c}));XLSX.utils.book_append_sheet(wb,x,n)},cn=id=>{const c=D.cats[D.items[id].cat];return c?c.name:'بدون صنف'};
+const ids=Object.keys(agg).sort((a,b)=>cn(a).localeCompare(cn(b),'ar')||(+D.items[a].tag||0)-(+D.items[b].tag||0));
+add('الجرد حسب الصنف',[['الصنف','رمز البطاقة','الباركود','المادة','المسجّل','المعدود','الفرق','✓ تمت المطابقة'],...ids.map(id=>{const i=D.items[id];return [cn(id),i.tag||'',i.code||'',i.name,i.qty||0,agg[id],agg[id]-(i.qty||0),'']})],[16,12,16,34,10,10,10,14]);
+add('يحتاج تأكيد',[['النص','الكمية'],...L.filter(l=>!l.id||!D.items[l.id]).map(l=>[l.t,l.q])],[40,10]);
+add('سجل الجلسة',[['الوقت','النص','الكمية','المادة','الطريقة','الموظف'],...L.map(l=>[fd(l.ts),l.t,l.q,l.id&&D.items[l.id]?D.items[l.id].name:'',l.how||'',l.by||''])],[20,36,10,30,10,14]);
+const buf=XLSX.write(wb,{bookType:'xlsx',type:'array'});try{const x=await claude.use('downloads');if(!x)return toast('الحفظ غير متاح هنا');await x.save({filename:'jard-'+tdy()+'.xlsx',data:new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'})})}catch(x){toast('لم يتم الحفظ')}}
+});
+window.__arNum=arNum;window.__astResolve=resolve;
+})();
+</script></body></html>
