@@ -1721,4 +1721,54 @@ V.stkr=false;V.stq='';toast('✅ تم اعتماد التصفية الجردية
 try{if(!T.find(t=>t[0]=='stk')){T.push(['stk','تصفية جردية',()=>stkPage()]);if(Array.isArray(SUB)&&!SUB.includes('stk')&&MODE!='pos')SUB.push('stk');NI.stk=NI.stock;TABP.stk='stk';if(!LK.includes('stk'))LK.push('stk');const k=T.findIndex(t=>t[0]=='stock');if(k>=0){const f=T[k][2];T[k][2]=()=>`<div class=btns><button class=pri data-a=tab data-id=stk>📋 تصفية جردية — جرد فعلي لكل المحل${S()?' (في جرد مفتوح)':''}</button></div>`+f()}}}catch(x){console.error('stk init',x)}
 })();
 </script>
+<script>/* v175: المواد الجديدة — طباعة ملصقات باركود */
+(function(){
+const LKEY='lblcfg',DEF={w:50,h:30,co:true,nm:true,pr:true};
+const cfg=()=>{try{return Object.assign({},DEF,JSON.parse(localStorage.getItem(LKEY)||'{}'))}catch(x){return {...DEF}}};
+const scfg=o=>{try{localStorage.setItem(LKEY,JSON.stringify({...cfg(),...o}))}catch(x){}};
+const idTs=id=>{const t=parseInt(String(id).slice(0,8),36);return t>1.6e12&&t<Date.now()+864e5?t:0};
+const ymd=t=>{const d=new Date(t);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')};
+const d0=s=>new Date(s+'T00:00:00').getTime();
+const setRange=n=>{V.nwt=ymd(Date.now());V.nwf=ymd(Date.now()-n*864e5)};
+function rows(){if(!V.nwf||!V.nwt)setRange(7);const f=d0(V.nwf),t=d0(V.nwt)+864e5,R={};if(isNaN(f)||isNaN(t))return [];
+for(const p of Object.values(D.purchases)){const ts=+p.ts||0;if(ts<f||ts>=t)continue;for(const l of p.lines||[]){if(!l.id||!D.items[l.id])continue;const r=R[l.id]||(R[l.id]={id:l.id,q:0,src:new Set(),ts:0});r.q+=+l.q||0;r.src.add('شراء #'+p.no);r.ts=Math.max(r.ts,ts)}}
+for(const [id,i] of Object.entries(D.items)){const ts=idTs(id);if(ts>=f&&ts<t&&!R[id])R[id]={id,q:Math.max(0,+i.qty||0),src:new Set(['مادة جديدة']),ts}}
+const L=Object.values(R).map(r=>({...r,i:D.items[r.id],src:[...r.src].join('، ')}));const cc=typeof cmpCode=='function'?cmpCode:(a,b)=>(+a[1].tag||0)-(+b[1].tag||0);return L.sort((a,b)=>cc([a.id,a.i],[b.id,b.i]))}
+const cnt=r=>{const c=(V.nwc||{})[r.id];return c!=null?Math.max(0,Math.round(+c||0)):Math.max(0,Math.round(r.q))};
+const on=r=>!(V.nwx||{})[r.id];
+const bcOf=i=>{const c=String(i.code||'').trim();return c&&/^[\x20-\x7e]+$/.test(c)?c:String(i.tag||'')};
+function total(L){return L.filter(on).reduce((t,r)=>t+cnt(r),0)}
+function body(){const L=rows(),c=cfg();if(!L.length)return '<p class=mut style="margin:8px 2px">ما في مواد جديدة أو مستلمة بهالفترة.</p>';
+return `<div class=ptw><table class=ptb><thead><tr><th></th><th>رمز البطاقة</th><th>المادة</th><th>الكود</th><th>سعر البيع</th><th>المستلم</th><th>عدد الملصقات</th><th>التاريخ</th><th>المصدر</th></tr></thead><tbody>${L.map(r=>{const i=r.i,bc=bcOf(i),okc=bc&&bc==String(i.code||'').trim();return `<tr style="${on(r)?'':'opacity:.45'}"><td><input type=checkbox data-a=nwck data-id="${r.id}" ${on(r)?'checked':''} style="width:auto;margin:0"></td><td>${i.tag?'#'+e(String(i.tag)):''}</td><td class=nm>${e(i.name)}</td><td dir=ltr class="${okc?'':'bad'}">${okc?e(bc):(i.code?'كود غير صالح للباركود':'بدون كود')+(bc?' ← ينطبع #'+e(bc):'')}</td><td>${M(i.price||0)}</td><td>${N(r.q)}</td><td><input class=nwn data-id="${r.id}" type=number min=0 step=1 value="${cnt(r)}" style="width:70px"></td><td>${dt(r.ts)}</td><td><small>${e(r.src)}</small></td></tr>`}).join('')}</tbody></table></div>
+<div class=kv><span>المواد المحددة</span><b>${L.filter(on).length} من ${L.length}</b></div><div class=kv><span>مجموع الملصقات</span><b id=nwtot>${total(L)}</b></div>
+<details style="margin:8px 0"><summary>إعدادات الملصق (المقاس والمحتوى)</summary><div class=drg style="margin-top:6px"><label>العرض (ملم)<input id=lblw type=number min=20 max=120 step=1 value="${c.w}"></label><label>الارتفاع (ملم)<input id=lblh type=number min=15 max=120 step=1 value="${c.h}"></label></div>
+<label style="display:flex;gap:8px;align-items:center"><input type=checkbox id=lblco ${c.co?'checked':''} style="width:auto;margin:0"> اسم المحل${UI().co?' ('+e(UI().co)+')':' (اكتبه من الإعدادات)'}</label><label style="display:flex;gap:8px;align-items:center"><input type=checkbox id=lblnm ${c.nm?'checked':''} style="width:auto;margin:0"> اسم المادة</label><label style="display:flex;gap:8px;align-items:center"><input type=checkbox id=lblpr ${c.pr?'checked':''} style="width:auto;margin:0"> السعر</label></details>
+<div class=btns><button class=pri data-a=nwprint>🖨 طباعة الملصقات</button><button data-a=nwall>تحديد الكل</button><button data-a=nwnone>إلغاء تحديد الكل</button></div>`}
+function panel(){if(!V.nwf||!V.nwt)setRange(7);return `<div class=card><div class=top><h3 style="margin:0">🏷 المواد الجديدة — طباعة باركود</h3><button data-a=nwxl>⬇ Excel</button></div>
+<div class=drg><label>من تاريخ<input id=nwf type=date value="${e(V.nwf)}"></label><label>إلى تاريخ<input id=nwt type=date value="${e(V.nwt)}"></label></div>
+<div class=btns><button data-a=nwp data-id=0>اليوم</button><button data-a=nwp data-id=7>آخر 7 أيام</button><button data-a=nwp data-id=30>آخر 30 يوم</button></div>
+<p class=mut style="margin:4px 2px">بيطلع هون كل مادة انضافت جديد على البرنامج، أو انستلمت بفاتورة شراء، بالفترة اللي بتختارها. عدد الملصقات بيكون نفس الكمية المستلمة، وبتقدر تغيّره.</p><div id=nwb>${body()}</div></div>`}
+const rb=()=>{const b=$('#nwb');if(b)b.innerHTML=body()};
+function one(i,c){const bc=bcOf(i),bh=Math.max(6,Math.round(c.h*.36));const svg=bc?bar128(bc).replace(/style="[^"]*"/,`style="width:100%;height:${bh}mm;display:block;margin:.4mm 0;shape-rendering:crispEdges"`):'';
+return `<div class=lb>${c.co&&UI().co?`<div style="font-weight:bold;font-size:8pt;letter-spacing:1px;line-height:1.1">${e(UI().co)}</div>`:''}${c.nm?`<div style="font-size:6.5pt;line-height:1.15;max-height:2.3em;overflow:hidden">${e(i.name)}</div>`:''}${svg}<div style="font-size:6.5pt;direction:ltr;line-height:1.1">${e(bc)}</div>${c.pr?`<div style="font-weight:bold;font-size:9pt;direction:ltr;line-height:1.15">${M(i.price||0)} ${CUR}</div>`:''}</div>`}
+function printLabels(){const L=rows().filter(on),c=cfg();let h='',n=0;for(const r of L){const k=cnt(r);for(let j=0;j<k;j++){h+=one(r.i,c);n++}}
+if(!n)return toast('ما في ملصقات للطباعة — حدد مواد وعدد ملصقات');if(n>2000)return toast('العدد كبير ('+n+') — اطبعهم على دفعات');
+const rc=$('#rc');if(!rc)return toast('تعذر تجهيز الطباعة');const old=rc.innerHTML,oc=rc.className;rc.className='lbl';rc.innerHTML=h;
+const st=document.createElement('style');st.id='lblst';st.textContent=`#rc.lbl .lb{width:${c.w}mm;height:${c.h}mm;box-sizing:border-box;padding:1mm 1.5mm;overflow:hidden;page-break-after:always;break-after:page;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;font-family:Arial,sans-serif;color:#000;background:#fff}@media print{#rc.lbl{max-width:none!important;width:${c.w}mm!important;padding:0!important;margin:0!important}@page{size:${c.w}mm ${c.h}mm;margin:0}}`;document.head.appendChild(st);
+let dn=false;const done=()=>{if(dn)return;dn=true;st.remove();rc.className=oc;rc.innerHTML=old;window.removeEventListener('afterprint',done)};window.addEventListener('afterprint',done);setTimeout(()=>{try{window.print()}catch(x){done();toast('تعذر فتح الطباعة')}setTimeout(done,60000)},150)}
+async function excel(){if(typeof XLSX=='undefined')return toast('تعذر تحميل مكتبة Excel');const L=rows().filter(on);const ws=XLSX.utils.aoa_to_sheet([['رمز البطاقة','الكود','المادة','سعر البيع','المستلم','عدد الملصقات','التاريخ','المصدر'],...L.map(r=>[r.i.tag||'',r.i.code||'',r.i.name,+r.i.price||0,r.q,cnt(r),ymd(r.ts),r.src])]);ws['!cols']=[12,18,34,10,10,12,12,20].map(w=>({wch:w}));const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'مواد جديدة');const buf=XLSX.write(wb,{bookType:'xlsx',type:'array'});try{const x=await claude.use('downloads');if(!x)return toast('الحفظ غير متاح هنا');await x.save({filename:'new-items-'+V.nwf+'_'+V.nwt+'.xlsx',data:new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'})})}catch(x){toast('لم يتم الحفظ')}}
+document.addEventListener('change',ev=>{const t=ev.target;if(!t||!t.id)return;if(t.id=='nwf'||t.id=='nwt'){V[t.id]=t.value;rb()}else if(t.id=='lblw'||t.id=='lblh'){const v=Math.round(+t.value||0);if(v>=15&&v<=120)scfg({[t.id=='lblw'?'w':'h']:v})}else if(t.id=='lblco'||t.id=='lblnm'||t.id=='lblpr')scfg({[t.id.slice(3)]:t.checked})});
+document.addEventListener('input',ev=>{const t=ev.target;if(t&&t.classList&&t.classList.contains('nwn')){V.nwc=V.nwc||{};V.nwc[t.dataset.id]=t.value;const x=$('#nwtot');if(x)x.textContent=total(rows())}});
+Object.assign(A,{
+nwon:()=>{V.nwon=!V.nwon;if(V.nwon&&(!V.nwf||!V.nwt))setRange(7);render(true)},
+nwp:d=>{setRange(+d.id||0);V.nwc={};V.nwx={};render(true)},
+nwck:d=>{V.nwx=V.nwx||{};V.nwx[d.id]=!V.nwx[d.id];rb()},
+nwall:()=>{V.nwx={};rb()},
+nwnone:()=>{V.nwx={};rows().forEach(r=>V.nwx[r.id]=true);rb()},
+nwprint:()=>printLabels(),
+nwxl:()=>excel()
+});
+try{const k=T.findIndex(t=>t[0]=='items');if(k>=0&&!T[k].nw){const f=T[k][2];T[k][2]=()=>`<div class=btns><button class="${V.nwon?'on':'pri'}" data-a=nwon>${V.nwon?'✓ إخفاء المواد الجديدة':'🏷 المواد الجديدة (طباعة باركود)'}</button></div>`+(V.nwon?panel():'')+f();T[k].nw=1}}catch(x){console.error('nw init',x)}
+})();
+</script>
 </body></html>
