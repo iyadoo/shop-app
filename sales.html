@@ -1831,4 +1831,49 @@ lbtest:()=>lblPrint(lblOne(sample(),C()),C())
 try{if(!T.find(t=>t[0]=='lbl')){T.push(['lbl','تنسيق الملصق',()=>{if(!V.lbc)V.lbc=lblCfg();return lblPage()}]);if(Array.isArray(SUB)&&!SUB.includes('lbl')&&MODE!='pos')SUB.push('lbl');NI.lbl=NI.items;TABP.lbl='stk';if(!LK.includes('lbl'))LK.push('lbl')}}catch(x){console.error('lbl init',x)}
 })();
 </script>
+<script>/* v177: دخول الإعدادات باسم المستخدم وكلمة المرور */
+(function(){
+const ACC=()=>D.meta&&D.meta.adm&&D.meta.adm.h?D.meta.adm:null;
+const H=p=>sha('adm:'+p);
+const nu=u=>String(u||'').trim().toLowerCase();
+let fails=0,lockUntil=0;
+const inp=(id,lb,ty,ph)=>`<label>${lb}<input id=${id} type=${ty||'text'} value="${e((V.admv||{})[id]||'')}" autocomplete=off ${ph?`placeholder="${e(ph)}"`:''} style="direction:ltr;text-align:center"></label>`;
+function loginPage(){const a=ACC();
+if(!a)return `<div class=card style="max-width:420px;margin:24px auto"><h3 style="margin:0 0 6px">🔐 إنشاء حساب الإعدادات</h3><p class=mut style="margin:0 0 10px">من هلأ، الدخول لصفحة الإعدادات بيكون باسم مستخدم وكلمة مرور. اختار اسم مستخدم وكلمة مرور (6 أحرف أو أرقام على الأقل) واحفظهم بمكان آمن.</p>
+${D.meta.pw&&D.meta.pw.h?inp('admpin','رمز الأقسام الحالي (للتأكيد إنك صاحب البرنامج)','password'):''}${inp('admu','اسم المستخدم')}${inp('admp','كلمة المرور','password')}${inp('admp2','تأكيد كلمة المرور','password')}
+<p id=admerr class=bad style="min-height:1em;margin:6px 2px"></p><div class=btns><button class=pri data-a=admcreate>إنشاء الحساب والدخول</button><button data-a=tab data-id=home>رجوع</button></div></div>`;
+return `<div class=card style="max-width:420px;margin:24px auto"><h3 style="margin:0 0 6px">🔐 الدخول للإعدادات</h3><p class=mut style="margin:0 0 10px">اكتب اسم المستخدم وكلمة المرور.</p>
+${inp('admu','اسم المستخدم')}${inp('admp','كلمة المرور','password')}
+<p id=admerr class=bad style="min-height:1em;margin:6px 2px"></p><div class=btns><button class=pri data-a=admlogin>دخول</button><button data-a=tab data-id=home>رجوع</button></div>
+<p style="margin:10px 2px 0"><a href="#" data-a=admforgot class=mut>نسيت كلمة المرور؟</a></p></div>`}
+function acctCard(){const a=ACC();return `<div class=card><div class=kv><span>🔐 داخل الإعدادات باسم: <b dir=ltr>${e(a?a.u:'')}</b></span><span><button data-a=admchg>تغيير اسم المستخدم / كلمة المرور</button> <button data-a=admout>خروج من الإعدادات</button></span></div></div>`}
+const err=t=>{const x=$('#admerr');if(x)x.textContent=t||''};
+const val=id=>{const x=$('#'+id);return x?x.value:''};
+const focus1=()=>setTimeout(()=>{const a=document.activeElement;if(a&&/^adm/.test(a.id||''))return;const x=(V.admf&&$('#'+V.admf))||$('#admpin')||$('#admu');if(x){x.focus();try{const n=x.value.length;x.setSelectionRange&&x.type!='password'&&x.setSelectionRange(n,n)}catch(_){}}},30);
+document.addEventListener('input',ev=>{const t=ev.target;if(t&&/^adm(u|p|p2|pin)$/.test(t.id)){V.admv=V.admv||{};V.admv[t.id]=t.value;V.admf=t.id}});
+async function doLogin(){const a=ACC();if(!a)return;if(Date.now()<lockUntil)return err('محاولات كثيرة غلط — استنى '+Math.ceil((lockUntil-Date.now())/1000)+' ثانية');
+const u=val('admu').trim(),p=val('admp').trim();if(!u||!p)return err('اكتب اسم المستخدم وكلمة المرور');
+if(nu(u)==nu(a.u)&&await H(p)==a.h){fails=0;V.admOk=true;V.admv={};V.admf=null;toast('أهلاً '+a.u);render(true);return}
+fails++;if(fails>=5){lockUntil=Date.now()+30000;fails=0}err('اسم المستخدم أو كلمة المرور غلط');if(V.admv)V.admv.admp='';V.admf='admp';const x=$('#admp');if(x){x.value='';x.focus()}}
+async function doCreate(){if(ACC())return render(true);const u=val('admu').trim(),p=val('admp').trim(),p2=val('admp2').trim();
+if(D.meta.pw&&D.meta.pw.h){const pin=val('admpin').trim();if(!pin||await sha(pin)!=D.meta.pw.h)return err('رمز الأقسام غلط')}
+if(u.length<3)return err('اسم المستخدم 3 أحرف على الأقل');if(p.length<6)return err('كلمة المرور 6 أحرف أو أرقام على الأقل');if(p!==p2)return err('كلمتين المرور مش متطابقات');
+put('meta','adm',{u,h:await H(p),t:Date.now()});V.admOk=true;V.admv={};V.admf=null;toast('تم إنشاء حساب الإعدادات');render(true)}
+function setNew(title,cb){ask(title,[['u','اسم المستخدم الجديد','text',ACC()?ACC().u:''],['p','كلمة المرور الجديدة (6 على الأقل)','password',''],['p2','تأكيد كلمة المرور','password','']],async o=>{const u=String(o.u||'').trim();
+if(u.length<3)return toast('اسم المستخدم 3 أحرف على الأقل');if(String(o.p).length<6)return toast('كلمة المرور 6 أحرف أو أرقام على الأقل');if(o.p!==o.p2)return toast('كلمتين المرور مش متطابقات');
+put('meta','adm',{u,h:await H(o.p),t:Date.now()});toast('تم حفظ اسم المستخدم وكلمة المرور');cb&&cb()})}
+document.addEventListener('keydown',ev=>{const t=ev.target;if(!t||ev.key!='Enter'||!/^adm(u|p|p2|pin)$/.test(t.id))return;ev.preventDefault();ev.stopPropagation();ACC()?doLogin():doCreate()},true);
+Object.assign(A,{
+admlogin:()=>doLogin(),
+admcreate:()=>doCreate(),
+admout:()=>{V.admOk=false;V.sv=null;V.tab='home';render(true)},
+admchg:()=>{const a=ACC();if(!a)return;ask('تأكيد كلمة المرور الحالية',[['p','كلمة المرور الحالية','password','']],async o=>{if(await H(o.p)!=a.h)return toast('كلمة المرور الحالية غلط');setNew('اسم مستخدم وكلمة مرور جديدة')})},
+admforgot:async()=>{const rec=D.meta.pw&&D.meta.pw.h?D.meta.pw:(D.meta.lp&&D.meta.lp.h?D.meta.lp:null);if(!rec)return toast('ما في رمز ثاني للتحقق — تواصل مع الدعم');const ok=await pinVerify(D.meta.pw&&D.meta.pw.h?'أدخل رمز الأقسام لإعادة تعيين الحساب':'أدخل رمز دخول البرنامج لإعادة تعيين الحساب',rec);if(ok)setNew('إعادة تعيين حساب الإعدادات',()=>{V.admOk=true;render(true)})}
+});
+try{const k=T.findIndex(t=>t[0]=='set');if(k>=0&&!T[k].adm){const f=T[k][2];T[k][2]=()=>{if(!V.admOk){focus1();return loginPage()}return acctCard()+f()};T[k].adm=1}
+const i=LK.indexOf('set');if(i>=0)LK.splice(i,1);
+const ot=A.tab;A.tab=d=>{if(V.tab=='set'&&d&&d.id!='set')V.admOk=false;return ot(d)};
+for(const n of ['lock','logout']){const o=A[n];if(typeof o=='function')A[n]=(...x)=>{V.admOk=false;return o(...x)}}}catch(x){console.error('adm init',x)}
+})();
+</script>
 </body></html>
