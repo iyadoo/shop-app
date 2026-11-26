@@ -1741,8 +1741,7 @@ function total(L){return L.filter(on).reduce((t,r)=>t+cnt(r),0)}
 function body(){const L=rows(),c=cfg();if(!L.length)return '<p class=mut style="margin:8px 2px">ما في مواد جديدة أو مستلمة بهالفترة.</p>';
 return `<div class=ptw><table class=ptb><thead><tr><th></th><th>رمز البطاقة</th><th>المادة</th><th>الكود</th><th>سعر البيع</th><th>المستلم</th><th>عدد الملصقات</th><th>التاريخ</th><th>المصدر</th></tr></thead><tbody>${L.map(r=>{const i=r.i,bc=bcOf(i),okc=bc&&bc==String(i.code||'').trim();return `<tr style="${on(r)?'':'opacity:.45'}"><td><input type=checkbox data-a=nwck data-id="${r.id}" ${on(r)?'checked':''} style="width:auto;margin:0"></td><td>${i.tag?'#'+e(String(i.tag)):''}</td><td class=nm>${e(i.name)}</td><td dir=ltr class="${okc?'':'bad'}">${okc?e(bc):(i.code?'كود غير صالح للباركود':'بدون كود')+(bc?' ← ينطبع #'+e(bc):'')}</td><td>${M(i.price||0)}</td><td>${N(r.q)}</td><td><input class=nwn data-id="${r.id}" type=number min=0 step=1 value="${cnt(r)}" style="width:70px"></td><td>${dt(r.ts)}</td><td><small>${e(r.src)}</small></td></tr>`}).join('')}</tbody></table></div>
 <div class=kv><span>المواد المحددة</span><b>${L.filter(on).length} من ${L.length}</b></div><div class=kv><span>مجموع الملصقات</span><b id=nwtot>${total(L)}</b></div>
-<details style="margin:8px 0"><summary>إعدادات الملصق (المقاس والمحتوى)</summary><div class=drg style="margin-top:6px"><label>العرض (ملم)<input id=lblw type=number min=20 max=120 step=1 value="${c.w}"></label><label>الارتفاع (ملم)<input id=lblh type=number min=15 max=120 step=1 value="${c.h}"></label></div>
-<label style="display:flex;gap:8px;align-items:center"><input type=checkbox id=lblco ${c.co?'checked':''} style="width:auto;margin:0"> اسم المحل${UI().co?' ('+e(UI().co)+')':' (اكتبه من الإعدادات)'}</label><label style="display:flex;gap:8px;align-items:center"><input type=checkbox id=lblnm ${c.nm?'checked':''} style="width:auto;margin:0"> اسم المادة</label><label style="display:flex;gap:8px;align-items:center"><input type=checkbox id=lblpr ${c.pr?'checked':''} style="width:auto;margin:0"> السعر</label></details>
+<div class=btns style="margin:8px 0"><button data-a=lbopen>🎨 تنسيق الملصق (المقاس والمحتوى)</button></div>
 <div class=btns><button class=pri data-a=nwprint>🖨 طباعة الملصقات</button><button data-a=nwall>تحديد الكل</button><button data-a=nwnone>إلغاء تحديد الكل</button></div>`}
 function panel(){if(!V.nwf||!V.nwt)setRange(7);return `<div class=card><div class=top><h3 style="margin:0">🏷 المواد الجديدة — طباعة باركود</h3><button data-a=nwxl>⬇ Excel</button></div>
 <div class=drg><label>من تاريخ<input id=nwf type=date value="${e(V.nwf)}"></label><label>إلى تاريخ<input id=nwt type=date value="${e(V.nwt)}"></label></div>
@@ -1751,7 +1750,7 @@ function panel(){if(!V.nwf||!V.nwt)setRange(7);return `<div class=card><div clas
 const rb=()=>{const b=$('#nwb');if(b)b.innerHTML=body()};
 function one(i,c){const bc=bcOf(i),bh=Math.max(6,Math.round(c.h*.36));const svg=bc?bar128(bc).replace(/style="[^"]*"/,`style="width:100%;height:${bh}mm;display:block;margin:.4mm 0;shape-rendering:crispEdges"`):'';
 return `<div class=lb>${c.co&&UI().co?`<div style="font-weight:bold;font-size:8pt;letter-spacing:1px;line-height:1.1">${e(UI().co)}</div>`:''}${c.nm?`<div style="font-size:6.5pt;line-height:1.15;max-height:2.3em;overflow:hidden">${e(i.name)}</div>`:''}${svg}<div style="font-size:6.5pt;direction:ltr;line-height:1.1">${e(bc)}</div>${c.pr?`<div style="font-weight:bold;font-size:9pt;direction:ltr;line-height:1.15">${M(i.price||0)} ${CUR}</div>`:''}</div>`}
-function printLabels(){const L=rows().filter(on),c=cfg();let h='',n=0;for(const r of L){const k=cnt(r);for(let j=0;j<k;j++){h+=one(r.i,c);n++}}
+function printLabels(){const L=rows().filter(on),c=window.lblCfg?lblCfg():cfg();let h='',n=0;for(const r of L){const k=cnt(r);for(let j=0;j<k;j++){h+=window.lblOne?lblOne(r.i,c):one(r.i,c);n++}}
 if(!n)return toast('ما في ملصقات للطباعة — حدد مواد وعدد ملصقات');if(n>2000)return toast('العدد كبير ('+n+') — اطبعهم على دفعات');
 const rc=$('#rc');if(!rc)return toast('تعذر تجهيز الطباعة');const old=rc.innerHTML,oc=rc.className;rc.className='lbl';rc.innerHTML=h;
 const st=document.createElement('style');st.id='lblst';st.textContent=`#rc.lbl .lb{width:${c.w}mm;height:${c.h}mm;box-sizing:border-box;padding:1mm 1.5mm;overflow:hidden;page-break-after:always;break-after:page;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;font-family:Arial,sans-serif;color:#000;background:#fff}@media print{#rc.lbl{max-width:none!important;width:${c.w}mm!important;padding:0!important;margin:0!important}@page{size:${c.w}mm ${c.h}mm;margin:0}}`;document.head.appendChild(st);
@@ -1768,7 +1767,68 @@ nwnone:()=>{V.nwx={};rows().forEach(r=>V.nwx[r.id]=true);rb()},
 nwprint:()=>printLabels(),
 nwxl:()=>excel()
 });
-try{const k=T.findIndex(t=>t[0]=='items');if(k>=0&&!T[k].nw){const f=T[k][2];T[k][2]=()=>`<div class=btns><button class="${V.nwon?'on':'pri'}" data-a=nwon>${V.nwon?'✓ إخفاء المواد الجديدة':'🏷 المواد الجديدة (طباعة باركود)'}</button></div>`+(V.nwon?panel():'')+f();T[k].nw=1}}catch(x){console.error('nw init',x)}
+try{const k=T.findIndex(t=>t[0]=='items');if(k>=0&&!T[k].nw){const f=T[k][2];T[k][2]=()=>`<div class=btns><button class="${V.nwon?'on':'pri'}" data-a=nwon>${V.nwon?'✓ إخفاء المواد الجديدة':'🏷 المواد الجديدة (طباعة باركود)'}</button><button data-a=lbopen>🎨 تنسيق ملصق الباركود</button></div>`+(V.nwon?panel():'')+f();T[k].nw=1}}catch(x){console.error('nw init',x)}
+})();
+</script>
+<script>/* v176: شاشة تنسيق ملصق الباركود */
+(function(){
+const FL=[['co','اسم المحل'],['nm','اسم المادة'],['bc','الباركود'],['cd','الكود مكتوب'],['pr','السعر'],['tg','رمز البطاقة'],['ct','الصنف'],['tx','نص ثابت']];
+const DEF={w:50,h:30,pad:1,brd:0,co:'',ord:['co','nm','bc','cd','pr','tg','ct','tx'],f:{co:{on:1,fs:8,b:1},nm:{on:1,fs:6.5,b:0},bc:{on:1,h:11,wp:100},cd:{on:1,fs:6.5,b:0},pr:{on:1,fs:9,b:1},tg:{on:0,fs:6.5,b:0},ct:{on:0,fs:6.5,b:0},tx:{on:0,fs:6.5,b:0,t:''}}};
+const clone=o=>JSON.parse(JSON.stringify(o));
+function merge(s){const o=clone(DEF);if(!s)return o;for(const k of ['w','h','pad','brd','co'])if(s[k]!=null)o[k]=s[k];if(Array.isArray(s.ord)){const ord=s.ord.filter(k=>o.f[k]);for(const k of DEF.ord)if(!ord.includes(k))ord.push(k);o.ord=ord}if(s.f)for(const k in o.f)Object.assign(o.f[k],s.f[k]||{});return o}
+window.lblCfg=()=>{let s=D.meta&&D.meta.lbl;if(!s){try{const l=JSON.parse(localStorage.getItem('lblcfg')||'null');if(l)s={w:l.w,h:l.h,f:{co:{on:l.co===false?0:1},nm:{on:l.nm===false?0:1},pr:{on:l.pr===false?0:1}}}}catch(x){}}return merge(s)};
+const bcOf=i=>{const c=String(i.code||'').trim();return c&&/^[\x20-\x7e]+$/.test(c)?c:String(i.tag||'')};
+window.lblOne=(i,c)=>{c=c||lblCfg();const F=c.f,co=String(c.co||'').trim()||UI().co||'';
+const tx=(k,v,ltr)=>{const f=F[k];return v?`<div style="font-size:${+f.fs||6}pt;${+f.b?'font-weight:bold;':''}line-height:1.15;max-width:100%;overflow:hidden;${k=='nm'?'max-height:2.35em;':'white-space:nowrap;'}${ltr?'direction:ltr;':''}">${e(String(v))}</div>`:''};
+let h='';for(const k of c.ord){const f=F[k];if(!f||!+f.on)continue;
+if(k=='co')h+=tx(k,co);else if(k=='nm')h+=tx(k,i.name);else if(k=='cd')h+=tx(k,bcOf(i),1);else if(k=='pr')h+=tx(k,M(i.price||0)+' '+CUR,1);else if(k=='tg')h+=tx(k,i.tag?'#'+i.tag:'',1);else if(k=='ct')h+=tx(k,((D.cats||{})[i.cat]||{}).name||'');else if(k=='tx')h+=tx(k,f.t||'');
+else if(k=='bc'){const b=bcOf(i);if(b)h+=bar128(b).replace(/style="[^"]*"/,`style="width:${+f.wp||100}%;height:${+f.h||10}mm;display:block;margin:.4mm auto;shape-rendering:crispEdges"`)}}
+return `<div class=lb style="width:${c.w}mm;height:${c.h}mm;box-sizing:border-box;padding:${+c.pad||0}mm;overflow:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.3mm;text-align:center;font-family:Arial,sans-serif;color:#000;background:#fff;${+c.brd?'border:0.25mm solid #000;':''}page-break-after:always;break-after:page">${h}</div>`};
+window.lblPrint=(html,c)=>{c=c||lblCfg();const rc=$('#rc');if(!rc)return toast('تعذر تجهيز الطباعة');const old=rc.innerHTML,oc=rc.className;rc.className='lbl';rc.innerHTML=html;
+const st=document.createElement('style');st.textContent=`@media print{#rc.lbl{max-width:none!important;width:${c.w}mm!important;padding:0!important;margin:0!important}@page{size:${c.w}mm ${c.h}mm;margin:0}}`;document.head.appendChild(st);
+let dn=false;const done=()=>{if(dn)return;dn=true;st.remove();rc.className=oc;rc.innerHTML=old;window.removeEventListener('afterprint',done)};window.addEventListener('afterprint',done);setTimeout(()=>{try{window.print()}catch(x){done();toast('تعذر فتح الطباعة')}setTimeout(done,60000)},150)};
+const C=()=>V.lbc||(V.lbc=lblCfg());
+function sample(){const id=V.lbs&&D.items[V.lbs]?V.lbs:Object.keys(D.items).find(k=>/^[\x20-\x7e]+$/.test(String(D.items[k].code||'')))||Object.keys(D.items)[0];return D.items[id]||{name:'مادة تجريبية',code:'F510ABD2700.00',tag:1700,price:25}}
+function pv(){const c=C(),z=Math.max(.5,Math.min(5,300/(c.w*3.78)));return `<div style="zoom:${z.toFixed(2)};box-shadow:0 1px 6px rgba(0,0,0,.25)">${lblOne(sample(),c)}</div>`}
+const num=(k,v,st,mn,mx)=>`<input type=number data-lk="${k}" value="${v}" step="${st}" min="${mn}" max="${mx}" style="width:72px">`;
+const chk=(k,v)=>`<input type=checkbox data-lk="${k}" ${+v?'checked':''} style="width:auto;margin:0">`;
+function rowF(k,n,last){const c=C(),f=c.f[k],lb=(FL.find(x=>x[0]==k)||[,k])[1];
+return `<tr><td>${chk('f.'+k+'.on',f.on)}</td><td><b>${lb}</b>${k=='tx'?`<br><input data-lk="f.tx.t" value="${e(f.t||'')}" placeholder="مثلاً: تبديل خلال 3 أيام" style="margin-top:4px">`:''}</td>
+<td>${k=='bc'?`ارتفاع ${num('f.bc.h',f.h,.5,4,60)} ملم<br>عرض ${num('f.bc.wp',f.wp,5,30,100)} %`:`حجم ${num('f.'+k+'.fs',f.fs,.5,4,30)} pt`}</td>
+<td>${k=='bc'?'':`<label style="display:flex;gap:4px;align-items:center;margin:0">${chk('f.'+k+'.b',f.b)} عريض</label>`}</td>
+<td style="white-space:nowrap"><button data-a=lbup data-id=${k} ${n==0?'disabled style="opacity:.35"':''} title="لفوق">▲</button> <button data-a=lbdn data-id=${k} ${last?'disabled style="opacity:.35"':''} title="لتحت">▼</button></td></tr>`}
+window.lblPage=function(){const c=C(),s=sample();
+return `<div class=card><div class=top><h3 style="margin:0">🎨 تنسيق ملصق الباركود</h3><button data-a=tab data-id=items>↩ رجوع للمواد</button></div>
+<p class=mut style="margin:4px 2px 10px">غيّر المقاس والمحتوى وشوف النتيجة بالمعاينة مباشرة. لما تخلص اضغط <b>حفظ التنسيق</b>، وكل الملصقات اللي بتطبعها بعدها بتطلع بنفس الشكل.</p>
+<div style="display:flex;gap:18px;flex-wrap:wrap;align-items:flex-start">
+<div style="flex:1 1 340px;min-width:300px">
+<h4 style="margin:4px 0">مقاس الملصق</h4>
+<div class=drg><label>العرض (ملم)${num('w',c.w,1,15,120)}</label><label>الارتفاع (ملم)${num('h',c.h,1,10,120)}</label><label>الهامش الداخلي (ملم)${num('pad',c.pad,.5,0,10)}</label></div>
+<label style="display:flex;gap:8px;align-items:center">${chk('brd',c.brd)} إطار حول الملصق</label>
+<label>اسم المحل على الملصق<input data-lk="co" value="${e(c.co||'')}" placeholder="${e(UI().co||'GRAND')}"></label>
+<h4 style="margin:10px 0 4px">المحتوى والترتيب</h4><p class=mut style="margin:0 2px 6px">علّم اللي بدك يطلع، وغيّر ترتيبه بالأسهم.</p>
+<div class=ptw><table class=ptb><thead><tr><th>يطلع</th><th>العنصر</th><th>الحجم</th><th></th><th>الترتيب</th></tr></thead><tbody>${c.ord.map((k,n)=>rowF(k,n,n==c.ord.length-1)).join('')}</tbody></table></div>
+</div>
+<div style="flex:1 1 300px;min-width:280px;position:sticky;top:8px">
+<h4 style="margin:4px 0">المعاينة</h4>
+<div id=lbpv style="background:#d1d5db;padding:18px;border-radius:12px;display:flex;justify-content:center;align-items:center;min-height:160px;overflow:auto">${pv()}</div>
+<label style="margin-top:8px">مادة للمعاينة (اسم، رمز بطاقة أو كود)<input id=lbsq autocomplete=off placeholder="${e(s.name||'')}"></label>
+<div class=btns style="margin-top:10px"><button class=pri data-a=lbsave>💾 حفظ التنسيق</button><button data-a=lbtest>🖨 طباعة ملصق تجربة</button><button data-a=lbreset>إرجاع الافتراضي</button></div>
+<p class=mut style="margin:6px 2px">نصيحة: اطبع ملصق تجربة واحد على طابعة الباركود قبل ما تطبع كمية.</p></div></div></div>`};
+const rp=()=>{const b=$('#lbpv');if(b)b.innerHTML=pv()};
+function setK(path,el){const c=C(),p=path.split('.');let o=c;for(let j=0;j<p.length-1;j++)o=o[p[j]];const k=p[p.length-1];
+if(el.type=='checkbox')o[k]=el.checked?1:0;else if(el.type=='number'){const v=parseFloat(el.value);if(isNaN(v))return;o[k]=v}else o[k]=el.value;rp()}
+const onEv=ev=>{const t=ev.target;if(!t)return;if(t.dataset&&t.dataset.lk&&V.tab=='lbl')setK(t.dataset.lk,t);else if(t.id=='lbsq'){const q=t.value.trim().toLowerCase();if(!q){V.lbs=null;return rp()}const r=Object.entries(D.items).find(([,i])=>String(i.tag||'')==q||String(i.code||'').toLowerCase()==q)||Object.entries(D.items).find(([,i])=>String(i.name||'').toLowerCase().includes(q)||String(i.code||'').toLowerCase().includes(q));if(r){V.lbs=r[0];rp()}}};
+document.addEventListener('input',onEv);document.addEventListener('change',ev=>{if(ev.target&&ev.target.type=='checkbox')onEv(ev)});
+const mv=(k,d)=>{const o=C().ord,i=o.indexOf(k),j=i+d;if(i<0||j<0||j>=o.length)return;[o[i],o[j]]=[o[j],o[i]];render(true)};
+Object.assign(A,{
+lbopen:()=>{V.lbc=lblCfg();A.tab({id:'lbl'})},
+lbup:d=>mv(d.id,-1),lbdn:d=>mv(d.id,1),
+lbsave:()=>{const c=C();if(!(c.w>=15&&c.h>=10))return toast('المقاس غير صحيح');V.quiet=true;try{put('meta','lbl',clone(c))}finally{V.quiet=false}toast('✓ تم حفظ تنسيق الملصق')},
+lbreset:()=>ask('إرجاع تنسيق الملصق للافتراضي؟',[],()=>{V.lbc=clone(DEF);render(true)}),
+lbtest:()=>lblPrint(lblOne(sample(),C()),C())
+});
+try{if(!T.find(t=>t[0]=='lbl')){T.push(['lbl','تنسيق الملصق',()=>{if(!V.lbc)V.lbc=lblCfg();return lblPage()}]);if(Array.isArray(SUB)&&!SUB.includes('lbl')&&MODE!='pos')SUB.push('lbl');NI.lbl=NI.items;TABP.lbl='stk';if(!LK.includes('lbl'))LK.push('lbl')}}catch(x){console.error('lbl init',x)}
 })();
 </script>
 </body></html>
