@@ -1876,4 +1876,7 @@ const ot=A.tab;A.tab=d=>{if(V.tab=='set'&&d&&d.id!='set')V.admOk=false;return ot
 for(const n of ['lock','logout']){const o=A[n];if(typeof o=='function')A[n]=(...x)=>{V.admOk=false;return o(...x)}}}catch(x){console.error('adm init',x)}
 })();
 </script>
+<script>/* v178: منع التعليق بصفحة دخول الإعدادات */
+(function(){try{const R0=window.render;if(typeof R0!='function'||R0.__adm)return;const W=function(f){if(!f&&V.tab=='set'&&!V.admOk)return;return R0.apply(this,arguments)};W.__adm=1;window.render=W}catch(x){console.error('v178',x)}})();
+</script>
 </body></html>
