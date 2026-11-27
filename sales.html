@@ -1516,11 +1516,11 @@ const fromCache=c=>new Map(Object.entries((lc&&lc[c])||{})),
 overlay=c=>{const m=cache[c]||(cache[c]=new Map());for(const x of sbQ.q){if(x.c!=c)continue;if(x.t=='set')m.set(x.id,x.o);else if(x.t=='del')m.delete(x.id)}},
 emit=c=>{const f=cbs[c];if(!f)return;const m=cache[c]||new Map();f[0]({docs:[...m].map(([id,d])=>({id,data:()=>d}))})},
 load=async c=>{try{if(!R.cl)throw{message:'offline'};const m=new Map();for(let a=0;;a+=1000){const r=await R.cl.from('kv').select('id,data').eq('coll',c).range(a,a+999);if(r.error)throw r.error;r.data.forEach(x=>m.set(x.id,x.data));if(r.data.length<1000)break}cache[c]=m;overlay(c);saveCache();window.__lastSync=Date.now();emit(c);return true}
-catch(x){try{const ic=await window.__idbP;if(ic&&(!lc||(ic.__ts||0)>=(lc.__ts||0))){lc=ic;if(ic.__ts)window.__lastSync=ic.__ts}}catch(y){}R.stale=true;window.SBOFF=true;sbStatus();if(!lc){window.SBNOCACHE=true;if(!window.__nct){window.__nct=1;toast('لا يوجد اتصال بالإنترنت ولا نسخة محلية بعد — سيعمل البرنامج عند عودة الاتصال')}return false}cache[c]=fromCache(c);overlay(c);emit(c);return false}};
+catch(x){if(window.fbLoad)window.fbLoad(c).then(fm=>{if(fm&&R.stale){cache[c]=fm;overlay(c);saveCache();emit(c);if(c!='meta')render()}}).catch(()=>{});try{const ic=await window.__idbP;if(ic&&(!lc||(ic.__ts||0)>=(lc.__ts||0))){lc=ic;if(ic.__ts)window.__lastSync=ic.__ts}}catch(y){}R.stale=true;window.SBOFF=true;sbStatus();if(!lc){window.SBNOCACHE=true;if(!window.__nct){window.__nct=1;toast('لا يوجد اتصال بالإنترنت ولا نسخة محلية بعد — سيعمل البرنامج عند عودة الاتصال')}return false}cache[c]=fromCache(c);overlay(c);emit(c);return false}};
 R.reload=()=>Object.keys(cbs).forEach(c=>load(c));
 let rt=false;R.attach=()=>{if(rt||!R.cl)return;rt=true;R.cl.channel('kv-sync').on('postgres_changes',{event:'*',schema:'public',table:'kv'},p=>{const n=p.new&&p.new.coll?p.new:null,o=p.old&&p.old.coll?p.old:null,c=(n||o||{}).coll;if(!c||!cache[c])return;const id=(n||o).id;if(sbPend(c,id))return;if(p.eventType=='DELETE'){if(!o)return;cache[c].delete(o.id)}else cache[c].set(n.id,n.data);saveCache();emit(c);if(c!='meta')render()}).subscribe()};
 R.attach();
-const enq=op=>{const i=sbQ.q.findIndex(x=>x.t!='bk'&&x.c==op.c&&x.id==op.id);if(i>=0)sbQ.q.splice(i,1);sbQ.q.push(op);sbQsave();sbFlush()};
+const enq=op=>{const i=sbQ.q.findIndex(x=>x.t!='bk'&&x.c==op.c&&x.id==op.id);if(i>=0)sbQ.q.splice(i,1);sbQ.q.push(op);sbQsave();try{window.fbMirror&&window.fbMirror(op)}catch(y){}sbFlush()};
 const col=c=>({doc:id=>({set:async o=>{id=String(id);(cache[c]=cache[c]||new Map()).set(id,JSON.parse(JSON.stringify(o)));saveCache();enq({t:'set',c,id,o:JSON.parse(JSON.stringify(o))})},delete:async()=>{id=String(id);(cache[c]=cache[c]||new Map()).delete(id);saveCache();enq({t:'del',c,id})}}),
 onSnapshot:(ok,er)=>{cbs[c]=[ok,er];if(lc&&lc[c]&&!cache[c]){cache[c]=fromCache(c);overlay(c);emit(c)}load(c)}});
 setInterval(()=>{sbFlush()},15000);window.addEventListener('online',()=>sbFlush());window.addEventListener('offline',()=>{window.SBOFF=true;sbStatus()});
@@ -1878,5 +1878,63 @@ for(const n of ['lock','logout']){const o=A[n];if(typeof o=='function')A[n]=(...
 </script>
 <script>/* v178: منع التعليق بصفحة دخول الإعدادات */
 (function(){try{const R0=window.render;if(typeof R0!='function'||R0.__adm)return;const W=function(f){if(!f&&V.tab=='set'&&!V.admOk)return;return R0.apply(this,arguments)};W.__adm=1;window.render=W}catch(x){console.error('v178',x)}})();
+</script>
+<script>/* v181: نسخة احتياطية حية على Firebase + تشغيل منه إذا وقف Supabase */
+(function(){
+const K='AIzaSyBhOpQYnTbqDBCUfb0c3_wG3y5tSZqR2Cg',P='posiyad-52ed7';
+const ROOT='projects/'+P+'/databases/(default)/documents',API='https://firestore.googleapis.com/v1/';
+const QK='fbq',AK='fbauth',SK='fbseed';
+let Q=[];try{Q=JSON.parse(localStorage.getItem(QK)||'[]')}catch(x){}
+const st={run:false,last:+(localStorage.getItem('fblast')||0),err:'',seeding:false,seedN:0,seedT:0};
+const qsave=()=>{try{localStorage.setItem(QK,JSON.stringify(Q))}catch(x){}};
+const enc=id=>{let s=encodeURIComponent(String(id));if(s=='.'||s=='..')s=s.replace(/\./g,'%2E');return s};
+const dname=(c,id)=>ROOT+'/'+c+'/'+enc(id);
+const okC=c=>c&&c[0]!='_'&&!/\//.test(c);
+const tmo=(ms)=>{const a=new AbortController();setTimeout(()=>a.abort(),ms);return a.signal};
+async function tok(force){let a=null;try{a=JSON.parse(localStorage.getItem(AK)||'null')}catch(x){}
+if(!force&&a&&a.id&&a.exp>Date.now()+60000)return a.id;
+let r;if(a&&a.rt){r=await fetch('https://securetoken.googleapis.com/v1/token?key='+K,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:'grant_type=refresh_token&refresh_token='+encodeURIComponent(a.rt),signal:tmo(15000)}).then(x=>x.json());
+if(r&&r.id_token){a={id:r.id_token,rt:r.refresh_token,exp:Date.now()+(+r.expires_in||3600)*1000};localStorage.setItem(AK,JSON.stringify(a));return a.id}}
+r=await fetch('https://identitytoolkit.googleapis.com/v1/accounts:signUp?key='+K,{method:'POST',headers:{'Content-Type':'application/json'},body:'{"returnSecureToken":true}',signal:tmo(15000)}).then(x=>x.json());
+if(!r||!r.idToken)throw new Error((r&&r.error&&r.error.message)||'fb auth');
+a={id:r.idToken,rt:r.refreshToken,exp:Date.now()+(+r.expiresIn||3600)*1000};localStorage.setItem(AK,JSON.stringify(a));return a.id}
+async function req(path,opt,retry){const t=await tok(retry);opt=opt||{};opt.headers=Object.assign({},opt.headers||{},{'Content-Type':'application/json',Authorization:'Bearer '+t});opt.signal=opt.signal||tmo(30000);
+const r=await fetch(API+path,opt);if((r.status==401||r.status==403)&&!retry)return req(path,Object.assign({},opt,{signal:null}),true);
+if(!r.ok){let m='';try{m=(await r.json()).error.message}catch(x){}throw new Error('Firebase '+r.status+(m?': '+m:''))}return r.json()}
+const wr=op=>op.t=='del'?{delete:dname(op.c,op.id)}:{update:{name:dname(op.c,op.id),fields:{d:{stringValue:JSON.stringify(op.o)},u:{integerValue:String(Date.now())}}}};
+async function commit(ops){return req(ROOT+':commit',{method:'POST',body:JSON.stringify({writes:ops.map(wr)})})}
+function batches(ops){const B=[];let cur=[],sz=0;for(const o of ops){const n=o.t=='del'?100:JSON.stringify(o.o).length+200;if(cur.length&&(cur.length>=400||sz+n>4e6)){B.push(cur);cur=[];sz=0}cur.push(o);sz+=n}if(cur.length)B.push(cur);return B}
+window.fbMirror=op=>{if(!op||!okC(op.c)||(op.t!='set'&&op.t!='del'))return;const i=Q.findIndex(x=>x.c==op.c&&x.id==op.id);if(i>=0)Q.splice(i,1);Q.push({t:op.t,c:op.c,id:String(op.id),o:op.t=='set'?op.o:undefined});qsave();clearTimeout(st.tm);st.tm=setTimeout(fbFlush,1500)};
+async function fbFlush(){if(st.run||!Q.length||!navigator.onLine)return;st.run=true;
+try{while(Q.length){const part=batches(Q.slice(0,400))[0];await commit(part);
+const done=new Set(part);Q=Q.filter(x=>!done.has(x));qsave();st.last=Date.now();localStorage.setItem('fblast',String(st.last));st.err=''}}
+catch(x){st.err=x.message||String(x)}finally{st.run=false}}
+window.fbFlush=fbFlush;
+async function seedDone(){try{const r=await req(ROOT+'/_sys/seed',{method:'GET'});return r&&r.fields?+(r.fields.ts&&r.fields.ts.integerValue||1):0}catch(x){return/404/.test(x.message)?0:-1}}
+async function fbSeed(manual){if(st.seeding)return;st.seeding=true;st.err='';try{
+const ops=[];for(const c of Object.keys(D))if(okC(c))for(const [id,o] of Object.entries(D[c]||{}))ops.push({t:'set',c,id:String(id),o});
+st.seedT=ops.length;st.seedN=0;rr();
+for(const b of batches(ops)){await commit(b);st.seedN+=b.length;rr()}
+await req(ROOT+':commit',{method:'POST',body:JSON.stringify({writes:[{update:{name:ROOT+'/_sys/seed',fields:{ts:{integerValue:String(Date.now())},n:{integerValue:String(ops.length)}}}}]})});
+localStorage.setItem(SK,String(Date.now()));st.last=Date.now();localStorage.setItem('fblast',String(st.last));
+if(manual)toast('تم رفع كل البيانات على Firebase ('+ops.length+' سجل)')}
+catch(x){st.err=x.message||String(x);if(manual)toast('تعذر الرفع على Firebase: '+st.err)}finally{st.seeding=false;rr()}}
+const rr=()=>{if(V.tab=='set'&&V.admOk)render(true)};
+let sdP=null;window.fbLoad=async c=>{if(!okC(c)||!navigator.onLine)return null;if(!sdP)sdP=seedDone();const s=await sdP;if(s<=0){sdP=null;return null}
+const m=new Map();let pt='';for(let g=0;g<200;g++){const r=await req(ROOT+'/'+c+'?pageSize=300&mask.fieldPaths=d'+(pt?'&pageToken='+encodeURIComponent(pt):''),{method:'GET',signal:tmo(20000)});
+(r.documents||[]).forEach(d=>{try{m.set(decodeURIComponent(d.name.split('/').pop()),JSON.parse(d.fields.d.stringValue))}catch(x){}});if(!r.nextPageToken)break;pt=r.nextPageToken}
+if(!window.__fbw){window.__fbw=1;setTimeout(()=>toast('⚠ Supabase لا يستجيب — البرنامج شغال من نسخة Firebase'),900)}return m};
+async function boot(){try{if(!(window.SBR&&window.SBR.cl)||window.SBOFF||!V.mr||!navigator.onLine)return setTimeout(boot,20000);
+if(!localStorage.getItem(SK)){const s=await seedDone();if(s>0)localStorage.setItem(SK,String(s));else if(s==0)await fbSeed(false);else return setTimeout(boot,60000)}}catch(x){setTimeout(boot,60000)}}
+setTimeout(boot,25000);setInterval(fbFlush,20000);window.addEventListener('online',()=>setTimeout(fbFlush,3000));
+A.fbseed=()=>{if(!(window.SBR&&window.SBR.cl)||window.SBOFF)return toast('لازم يكون في اتصال بالإنترنت و Supabase شغال');if(!confirm('رفع نسخة كاملة من كل البيانات على Firebase؟ (تقريباً '+Object.keys(D).reduce((a,c)=>a+Object.keys(D[c]||{}).length,0)+' سجل)'))return;fbSeed(true)};
+A.fbsync=()=>{fbFlush().then(()=>{toast(Q.length?'لسا في '+Q.length+' عملية — '+(st.err||'تحقق من الإنترنت'):'Firebase محدّث ✓');rr()})};
+function card(){const sd=+(localStorage.getItem(SK)||0),f=t=>t?new Date(t).toLocaleString('en-GB',{dateStyle:'short',timeStyle:'short'}):'—';
+const stat=st.seeding?`⏳ جاري الرفع الكامل: ${st.seedN} / ${st.seedT}`:!sd?'⏳ لسا ما انرفعت النسخة الكاملة (بتنرفع تلقائياً)':Q.length?`↻ ${Q.length} عملية بالانتظار`:'✓ محدّث';
+return `<div class=card><h3 style="margin:0 0 6px">🔥 نسخة Firebase الاحتياطية</h3><p class=mut style="margin:0 0 8px">كل بيعة أو تعديل بينحفظ على Supabase وبنفس الوقت بتنبعت نسخة منه لـ Firebase. إذا وقف Supabase، البرنامج بيقرأ من Firebase لحاله.</p>
+<div class=kv><span>الحالة</span><b>${e(stat)}</b></div><div class=kv><span>آخر مزامنة</span><b dir=ltr>${e(f(st.last))}</b></div><div class=kv><span>النسخة الكاملة</span><b dir=ltr>${e(f(sd))}</b></div>${st.err?`<p class=bad style="margin:6px 2px">${e(st.err)}</p>`:''}
+<div class=btns><button data-a=fbsync>مزامنة هلأ</button><button data-a=fbseed>رفع نسخة كاملة من جديد</button></div></div>`}
+try{const k=T.findIndex(t=>t[0]=='set');if(k>=0&&!T[k].fb){const f=T[k][2];T[k][2]=()=>{const h=f();return V.admOk?h+card():h};T[k].fb=1}}catch(x){console.error('v181',x)}
+})();
 </script>
 </body></html>

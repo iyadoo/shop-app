@@ -1,1 +1,1 @@
-{"version":180,"sha256":"77e3506db95a650ebdaa0ea4ecfb37de8d4a2a448e933c5a0242594dd9038267","notes":"طلب تخزين دائم من المتصفح حتى ما تنمسح النسخة المحلية"}
+{"version":181,"sha256":"2a2aaa5adb450c7c8aa2d2b37a8b6f6575b110915327ff55279d380aef46e591","notes":"نسخة احتياطية حية على Firebase + تشغيل منه إذا وقف Supabase"}
