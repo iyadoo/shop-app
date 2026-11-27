@@ -1333,7 +1333,7 @@ scan:async()=>{const m=$('#m');V.sc={on:true,last:'',lt:0};
 m.innerHTML=`<div class="box wide"><h3>مسح الباركود بالكاميرا</h3><div class=scv><video id=scv playsinline muted autoplay></video><div class=scl></div></div><p class=mut id=scm style="text-align:center;min-height:22px">وجّه الكاميرا نحو الباركود (Code 128)</p><div class=row><button id=scr style="display:none" onclick="V.sc.on=false;A.scan()">إعادة المحاولة</button><button id=scf>📷 التقاط صورة</button><button class=pri id=no>إغلاق</button></div><input id=scfi type=file accept="image/*" capture=environment hidden></div>`;m.style.display='flex';
 const vid=$('#scv'),msg=t=>{const e=$('#scm');if(e)e.textContent=t};let st=null,tm=null;
 const stop=()=>{V.sc.on=false;clearTimeout(tm);if(st)st.getTracks().forEach(t=>t.stop());m.style.display='none';const f=$('#q');if(f&&FINE())f.focus()};$('#no').onclick=stop;
-const hit=c=>{c=String(c).trim();const n=Date.now();if(!c||(c==V.sc.last&&n-V.sc.lt<2200))return;V.sc.last=c;V.sc.lt=n;const f=Object.entries(D.items).find(([,i])=>String(i.code||'').trim().toLowerCase()==c.toLowerCase());try{navigator.vibrate&&navigator.vibrate(f?60:[80,60,80])}catch(x){}
+const hit=c=>{c=String(c).trim();const n=Date.now();if(!c||(c==V.sc.last&&n-V.sc.lt<2200))return;V.sc.last=c;V.sc.lt=n;const f=Object.entries(D.items).find(([,i])=>String(i.code||'').trim().toLowerCase()==c.toLowerCase())||Object.entries(D.items).find(([,i])=>String(i.tag||'').trim()==c);try{window.scBeep&&scBeep(!!f)}catch(x){}try{navigator.vibrate&&navigator.vibrate(f?60:[80,60,80])}catch(x){}
 if(f){A.add({id:f[0]});msg('✓ '+f[1].name+' — أُضيفت للفاتورة')}else msg('الكود غير موجود بالمواد: '+c)};
 $('#scf').onclick=()=>$('#scfi').click();
 $('#scfi').onchange=async ev=>{const fl=ev.target.files[0];if(!fl)return;msg('جاري قراءة الصورة…');if(!window.BarcodeDetector&&!window.ZXing){try{await scLoadZX()}catch(x){return msg('تعذّر تحميل قارئ الباركود (يحتاج إنترنت)')}}
@@ -1444,7 +1444,7 @@ stm:d=>{V.stm=d.id;render(true)},
 pay2:d=>{const c=D.custs[d.id];ask('تسديد من '+c.name+' (الرصيد '+M(c.bal)+')',[['a','المبلغ','number',c.bal]],o=>{if(o.a>0)put('custs',d.id,{...c,bal:c.bal-o.a,hist:[...(c.hist||[]),{t:Date.now(),a:o.a}]})})}
 };
 document.addEventListener('click',ev=>{const b=ev.target.closest('[data-a]');if(b&&A[b.dataset.a])A[b.dataset.a](b.dataset)});
-document.addEventListener('input',ev=>{const t=ev.target;if(t.id=='q'){V.q=t.value;const qq=t.value.trim().toLowerCase();V.si=Math.max(0,spRes(qq).findIndex(x=>String(x[1].code||'').toLowerCase()==qq));sp()}else if(t.id=='cu')V.cust=t.value.trim();else if(t.id=='rq'){V.rq=t.value;$('#rl').innerHTML=invList()}else if(t.id=='sq'){V.sqq=t.value;$('#sl').innerHTML=sRows()}else if(t.id=='pd')V.pd=t.value;else if(t.id=='ps')V.ps=t.value;else if(t.id=='pq'){V.pq=t.value;$('#pg').innerHTML=pGrid()}else if(t.id=='plq'){V.plq=t.value;$('#pll').innerHTML=pList()}else if(t.id=='mq'){V.mq=t.value;$('#ml').innerHTML=mvList()}else if(t.id=='iq'){V.iq=t.value;$('#il').innerHTML=itemsList()}else if(t.id=='af'||t.id=='at'){V[t.id]=t.value;$('#acr').innerHTML=accBody()}else if(t.id=='cq'){V.cq=t.value;$('#cll').innerHTML=clList()}else if(t.id=='dq'){V.dq=t.value;$('#dl').innerHTML=debtList()}else if(t.id=='idt'||t.id=='idt2'){V[t.id]=t.value;$('#rl').innerHTML=invList()}else if(t.id=='ed')V.ec.d=t.value;else if(t.id=='et')V.ec.t=t.value;else if(t.id=='eq'){V.eq=t.value;$('#er').innerHTML=eRes()}else if(t.id=='rf'||t.id=='rt'){V[t.id]=t.value;[['#rr',repRes],['#mr',mvRes],['#dr',dayRes]].forEach(([q,fn])=>{const x=$(q);if(x)x.innerHTML=fn()})}});
+document.addEventListener('input',ev=>{const t=ev.target;if(t.id=='q'){V.q=t.value;const qq=t.value.trim().toLowerCase();V.si=(R=>{let k=R.findIndex(x=>String(x[1].code||'').toLowerCase()==qq);if(k<0)k=R.findIndex(x=>String(x[1].tag||'')==qq);return Math.max(0,k)})(spRes(qq));sp()}else if(t.id=='cu')V.cust=t.value.trim();else if(t.id=='rq'){V.rq=t.value;$('#rl').innerHTML=invList()}else if(t.id=='sq'){V.sqq=t.value;$('#sl').innerHTML=sRows()}else if(t.id=='pd')V.pd=t.value;else if(t.id=='ps')V.ps=t.value;else if(t.id=='pq'){V.pq=t.value;$('#pg').innerHTML=pGrid()}else if(t.id=='plq'){V.plq=t.value;$('#pll').innerHTML=pList()}else if(t.id=='mq'){V.mq=t.value;$('#ml').innerHTML=mvList()}else if(t.id=='iq'){V.iq=t.value;$('#il').innerHTML=itemsList()}else if(t.id=='af'||t.id=='at'){V[t.id]=t.value;$('#acr').innerHTML=accBody()}else if(t.id=='cq'){V.cq=t.value;$('#cll').innerHTML=clList()}else if(t.id=='dq'){V.dq=t.value;$('#dl').innerHTML=debtList()}else if(t.id=='idt'||t.id=='idt2'){V[t.id]=t.value;$('#rl').innerHTML=invList()}else if(t.id=='ed')V.ec.d=t.value;else if(t.id=='et')V.ec.t=t.value;else if(t.id=='eq'){V.eq=t.value;$('#er').innerHTML=eRes()}else if(t.id=='rf'||t.id=='rt'){V[t.id]=t.value;[['#rr',repRes],['#mr',mvRes],['#dr',dayRes]].forEach(([q,fn])=>{const x=$(q);if(x)x.innerHTML=fn()})}});
 document.addEventListener('keydown',ev=>{
 if((ev.target.id=='lp'||ev.target.id=='lp2')&&ev.key=='Enter'){ev.preventDefault();A.login();return}
 if(window.__kp){window.__kp(ev);return}
@@ -1779,12 +1779,12 @@ const DEF={w:50,h:30,pad:1,brd:0,co:'',ord:['co','nm','bc','cd','pr','tg','ct','
 const clone=o=>JSON.parse(JSON.stringify(o));
 function merge(s){const o=clone(DEF);if(!s)return o;for(const k of ['w','h','pad','brd','co'])if(s[k]!=null)o[k]=s[k];if(Array.isArray(s.ord)){const ord=s.ord.filter(k=>o.f[k]);for(const k of DEF.ord)if(!ord.includes(k))ord.push(k);o.ord=ord}if(s.f)for(const k in o.f)Object.assign(o.f[k],s.f[k]||{});return o}
 window.lblCfg=()=>{let s=D.meta&&D.meta.lbl;if(!s){try{const l=JSON.parse(localStorage.getItem('lblcfg')||'null');if(l)s={w:l.w,h:l.h,f:{co:{on:l.co===false?0:1},nm:{on:l.nm===false?0:1},pr:{on:l.pr===false?0:1}}}}catch(x){}}return merge(s)};
-const bcOf=i=>{const c=String(i.code||'').trim();return c&&/^[\x20-\x7e]+$/.test(c)?c:String(i.tag||'')};
+const bcOf=(i,cf)=>{const src=(cf&&cf.f&&cf.f.bc&&cf.f.bc.src)||'tag',c=String(i.code||'').trim(),ok=c&&/^[\x20-\x7e]+$/.test(c),tg=String(i.tag||'').trim();if(src=='code'&&ok)return c;return tg||(ok?c:'')};
 window.lblOne=(i,c)=>{c=c||lblCfg();const F=c.f,co=String(c.co||'').trim()||UI().co||'';
 const tx=(k,v,ltr)=>{const f=F[k];return v?`<div style="font-size:${+f.fs||6}pt;${+f.b?'font-weight:bold;':''}line-height:1.15;max-width:100%;overflow:hidden;${k=='nm'?'max-height:2.35em;':'white-space:nowrap;'}${ltr?'direction:ltr;':''}">${e(String(v))}</div>`:''};
 let h='';for(const k of c.ord){const f=F[k];if(!f||!+f.on)continue;
-if(k=='co')h+=tx(k,co);else if(k=='nm')h+=tx(k,i.name);else if(k=='cd')h+=tx(k,bcOf(i),1);else if(k=='pr')h+=tx(k,M(i.price||0)+' '+CUR,1);else if(k=='tg')h+=tx(k,i.tag?'#'+i.tag:'',1);else if(k=='ct')h+=tx(k,((D.cats||{})[i.cat]||{}).name||'');else if(k=='tx')h+=tx(k,f.t||'');
-else if(k=='bc'){const b=bcOf(i);if(b)h+=bar128(b).replace(/style="[^"]*"/,`style="width:${+f.wp||100}%;height:${+f.h||10}mm;display:block;margin:.4mm auto;shape-rendering:crispEdges"`)}}
+if(k=='co')h+=tx(k,co);else if(k=='nm')h+=tx(k,i.name);else if(k=='cd')h+=tx(k,bcOf(i,c),1);else if(k=='pr')h+=tx(k,M(i.price||0)+' '+CUR,1);else if(k=='tg')h+=tx(k,i.tag?'#'+i.tag:'',1);else if(k=='ct')h+=tx(k,((D.cats||{})[i.cat]||{}).name||'');else if(k=='tx')h+=tx(k,f.t||'');
+else if(k=='bc'){const b=bcOf(i,c);if(b)h+=(window.bcSvg?bcSvg(b,f,c):bar128(b))}}
 return `<div class=lb style="width:${c.w}mm;height:${c.h}mm;box-sizing:border-box;padding:${+c.pad||0}mm;overflow:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.3mm;text-align:center;font-family:Arial,sans-serif;color:#000;background:#fff;${+c.brd?'border:0.25mm solid #000;':''}page-break-after:always;break-after:page">${h}</div>`};
 window.lblPrint=(html,c)=>{c=c||lblCfg();const rc=$('#rc');if(!rc)return toast('تعذر تجهيز الطباعة');const old=rc.innerHTML,oc=rc.className;rc.className='lbl';rc.innerHTML=html;
 const st=document.createElement('style');st.textContent=`@media print{#rc.lbl{max-width:none!important;width:${c.w}mm!important;padding:0!important;margin:0!important}@page{size:${c.w}mm ${c.h}mm;margin:0}}`;document.head.appendChild(st);
@@ -1796,7 +1796,7 @@ const num=(k,v,st,mn,mx)=>`<input type=number data-lk="${k}" value="${v}" step="
 const chk=(k,v)=>`<input type=checkbox data-lk="${k}" ${+v?'checked':''} style="width:auto;margin:0">`;
 function rowF(k,n,last){const c=C(),f=c.f[k],lb=(FL.find(x=>x[0]==k)||[,k])[1];
 return `<tr><td>${chk('f.'+k+'.on',f.on)}</td><td><b>${lb}</b>${k=='tx'?`<br><input data-lk="f.tx.t" value="${e(f.t||'')}" placeholder="مثلاً: تبديل خلال 3 أيام" style="margin-top:4px">`:''}</td>
-<td>${k=='bc'?`ارتفاع ${num('f.bc.h',f.h,.5,4,60)} ملم<br>عرض ${num('f.bc.wp',f.wp,5,30,100)} %`:`حجم ${num('f.'+k+'.fs',f.fs,.5,4,30)} pt`}</td>
+<td>${k=='bc'?`ارتفاع ${num('f.bc.h',f.h,.5,4,60)} ملم<br>أقصى عرض ${num('f.bc.wp',f.wp,5,30,100)} %<br>المحتوى <select data-lk="f.bc.src" style="width:auto">${[['tag','رمز البطاقة (أوضح)'],['code','الكود الكامل']].map(([v,l])=>`<option value="${v}" ${(f.src||'tag')==v?'selected':''}>${l}</option>`).join('')}</select><br>دقة الطابعة <select data-lk="f.bc.dpi" style="width:auto">${['203','300'].map(v=>`<option value="${v}" ${String(f.dpi||203)==v?'selected':''}>${v} dpi</option>`).join('')}</select>`:`حجم ${num('f.'+k+'.fs',f.fs,.5,4,30)} pt`}</td>
 <td>${k=='bc'?'':`<label style="display:flex;gap:4px;align-items:center;margin:0">${chk('f.'+k+'.b',f.b)} عريض</label>`}</td>
 <td style="white-space:nowrap"><button data-a=lbup data-id=${k} ${n==0?'disabled style="opacity:.35"':''} title="لفوق">▲</button> <button data-a=lbdn data-id=${k} ${last?'disabled style="opacity:.35"':''} title="لتحت">▼</button></td></tr>`}
 window.lblPage=function(){const c=C(),s=sample();
@@ -1992,6 +1992,26 @@ return `<div class=card><h3 style="margin:0 0 6px">🔄 المطابقة بين 
 <div class=kv><span>آخر مطابقة</span><b dir=ltr>${e(f(st.last))}</b></div><div class=kv><span>سجلات انرحّلت (آخر مرة / المجموع)</span><b>${st.lastN} / ${st.fixed}</b></div>${st.err?`<p class=bad style="margin:6px 2px">${e(st.err)}</p>`:''}
 <div class=btns><button data-a=xsync>${st.run?'⏳ جاري المطابقة…':'طابق هلأ'}</button></div></div>`}
 try{const k=T.findIndex(t=>t[0]=='set');if(k>=0&&!T[k].xs){const f=T[k][2];T[k][2]=()=>{const h=f();return V.admOk?h+card():h};T[k].xs=1}}catch(x){console.error('v183',x)}
+})();
+</script>
+<script>/* v186: باركود ملصقات أوضح (رمز البطاقة + عرض بنقاط الطابعة) وصوت عند قراءة الكاميرا */
+(function(){
+function enc(s){const out=[];let set=null,i=0;const isD=j=>j<s.length&&s.charCodeAt(j)>=48&&s.charCodeAt(j)<=57;
+const run=j=>{let k=j;while(isD(k))k++;return k-j};
+const toB=()=>{if(set!=='B'){out.push(set===null?104:100);set='B'}},toC=()=>{if(set!=='C'){out.push(set===null?105:99);set='C'}};
+while(i<s.length){const r=run(i);
+if(r>=4||(r>=2&&i==0&&r==s.length&&r%2==0)){let n=r;if(n%2){toB();out.push(s.charCodeAt(i)-32);i++;n--}toC();for(let k=0;k<n;k+=2){out.push(+s.substr(i,2));i+=2}}
+else{toB();out.push(s.charCodeAt(i)-32);i++}}
+let sum=out[0];for(let j=1;j<out.length;j++)sum+=j*out[j];out.push(sum%103,106);return out}
+window.bc128enc=enc;
+window.bcSvg=(s,f,c)=>{f=f||{};c=c||{w:50,pad:0};const P=enc(String(s)).map(x=>C128[x]);let m=20;for(const p of P)for(const ch of p)m+=+ch;
+const dpi=+f.dpi||203,dot=25.4/dpi,avail=Math.max(5,((+c.w||50)-2*(+c.pad||0))*((+f.wp||100)/100)),k=Math.floor(avail/(m*dot)),wmm=k>=1?m*k*dot:avail;
+let x=10,r='';for(const p of P)for(let q=0;q<p.length;q++){const w=+p[q];if(q%2==0)r+=`<rect x="${x}" y="0" width="${w}" height="10"/>`;x+=w}
+return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${m} 10" preserveAspectRatio="none" style="width:${wmm.toFixed(3)}mm;height:${+f.h||10}mm;display:block;margin:.4mm auto;shape-rendering:crispEdges;flex:none" fill="#000">${r}</svg>`};
+let ac=null;const get=()=>{try{ac=ac||new (window.AudioContext||window.webkitAudioContext)();if(ac.state=='suspended')ac.resume()}catch(x){}return ac};
+['pointerdown','touchstart','keydown'].forEach(ev=>document.addEventListener(ev,()=>{get()},{passive:true,capture:true}));
+window.scBeep=ok=>{const a=get();if(!a)return;const t=a.currentTime+0.01;const tone=(f,s,d)=>{const o=a.createOscillator(),g=a.createGain();o.type='square';o.frequency.value=f;g.gain.setValueAtTime(0.0001,t+s);g.gain.exponentialRampToValueAtTime(0.3,t+s+0.01);g.gain.exponentialRampToValueAtTime(0.0001,t+s+d);o.connect(g);g.connect(a.destination);o.start(t+s);o.stop(t+s+d+0.03)};
+if(ok)tone(2600,0,0.13);else{tone(420,0,0.16);tone(420,0.24,0.16)}};
 })();
 </script>
 </body></html>
