@@ -1779,7 +1779,7 @@ const DEF={w:50,h:30,pad:1,brd:0,co:'',ord:['co','nm','bc','cd','pr','tg','ct','
 const clone=o=>JSON.parse(JSON.stringify(o));
 function merge(s){const o=clone(DEF);if(!s)return o;for(const k of ['w','h','pad','brd','co'])if(s[k]!=null)o[k]=s[k];if(Array.isArray(s.ord)){const ord=s.ord.filter(k=>o.f[k]);for(const k of DEF.ord)if(!ord.includes(k))ord.push(k);o.ord=ord}if(s.f)for(const k in o.f)Object.assign(o.f[k],s.f[k]||{});return o}
 window.lblCfg=()=>{let s=D.meta&&D.meta.lbl;if(!s){try{const l=JSON.parse(localStorage.getItem('lblcfg')||'null');if(l)s={w:l.w,h:l.h,f:{co:{on:l.co===false?0:1},nm:{on:l.nm===false?0:1},pr:{on:l.pr===false?0:1}}}}catch(x){}}return merge(s)};
-const bcOf=(i,cf)=>{const src=(cf&&cf.f&&cf.f.bc&&cf.f.bc.src)||'tag',c=String(i.code||'').trim(),ok=c&&/^[\x20-\x7e]+$/.test(c),tg=String(i.tag||'').trim();if(src=='code'&&ok)return c;return tg||(ok?c:'')};
+const bcOf=(i,cf)=>{const src=(cf&&cf.f&&cf.f.bc&&cf.f.bc.src)||'code',c=String(i.code||'').trim(),ok=c&&/^[\x20-\x7e]+$/.test(c),tg=String(i.tag||'').trim();if(src=='code'&&ok)return c;return tg||(ok?c:'')};
 window.lblOne=(i,c)=>{c=c||lblCfg();const F=c.f,co=String(c.co||'').trim()||UI().co||'';
 const tx=(k,v,ltr)=>{const f=F[k];return v?`<div style="font-size:${+f.fs||6}pt;${+f.b?'font-weight:bold;':''}line-height:1.15;max-width:100%;overflow:hidden;${k=='nm'?'max-height:2.35em;':'white-space:nowrap;'}${ltr?'direction:ltr;':''}">${e(String(v))}</div>`:''};
 let h='';for(const k of c.ord){const f=F[k];if(!f||!+f.on)continue;
@@ -1796,7 +1796,7 @@ const num=(k,v,st,mn,mx)=>`<input type=number data-lk="${k}" value="${v}" step="
 const chk=(k,v)=>`<input type=checkbox data-lk="${k}" ${+v?'checked':''} style="width:auto;margin:0">`;
 function rowF(k,n,last){const c=C(),f=c.f[k],lb=(FL.find(x=>x[0]==k)||[,k])[1];
 return `<tr><td>${chk('f.'+k+'.on',f.on)}</td><td><b>${lb}</b>${k=='tx'?`<br><input data-lk="f.tx.t" value="${e(f.t||'')}" placeholder="مثلاً: تبديل خلال 3 أيام" style="margin-top:4px">`:''}</td>
-<td>${k=='bc'?`ارتفاع ${num('f.bc.h',f.h,.5,4,60)} ملم<br>أقصى عرض ${num('f.bc.wp',f.wp,5,30,100)} %<br>المحتوى <select data-lk="f.bc.src" style="width:auto">${[['tag','رمز البطاقة (أوضح)'],['code','الكود الكامل']].map(([v,l])=>`<option value="${v}" ${(f.src||'tag')==v?'selected':''}>${l}</option>`).join('')}</select><br>دقة الطابعة <select data-lk="f.bc.dpi" style="width:auto">${['203','300'].map(v=>`<option value="${v}" ${String(f.dpi||203)==v?'selected':''}>${v} dpi</option>`).join('')}</select>`:`حجم ${num('f.'+k+'.fs',f.fs,.5,4,30)} pt`}</td>
+<td>${k=='bc'?`ارتفاع ${num('f.bc.h',f.h,.5,4,60)} ملم<br>أقصى عرض ${num('f.bc.wp',f.wp,5,30,100)} %<br>المحتوى <select data-lk="f.bc.src" style="width:auto">${[['code','الكود الكامل'],['tag','رمز البطاقة (أقصر وأوضح)']].map(([v,l])=>`<option value="${v}" ${(f.src||'code')==v?'selected':''}>${l}</option>`).join('')}</select><br>دقة الطابعة <select data-lk="f.bc.dpi" style="width:auto">${['203','300'].map(v=>`<option value="${v}" ${String(f.dpi||203)==v?'selected':''}>${v} dpi</option>`).join('')}</select>`:`حجم ${num('f.'+k+'.fs',f.fs,.5,4,30)} pt`}</td>
 <td>${k=='bc'?'':`<label style="display:flex;gap:4px;align-items:center;margin:0">${chk('f.'+k+'.b',f.b)} عريض</label>`}</td>
 <td style="white-space:nowrap"><button data-a=lbup data-id=${k} ${n==0?'disabled style="opacity:.35"':''} title="لفوق">▲</button> <button data-a=lbdn data-id=${k} ${last?'disabled style="opacity:.35"':''} title="لتحت">▼</button></td></tr>`}
 window.lblPage=function(){const c=C(),s=sample();
@@ -2004,9 +2004,9 @@ if(r>=4||(r>=2&&i==0&&r==s.length&&r%2==0)){let n=r;if(n%2){toB();out.push(s.cha
 else{toB();out.push(s.charCodeAt(i)-32);i++}}
 let sum=out[0];for(let j=1;j<out.length;j++)sum+=j*out[j];out.push(sum%103,106);return out}
 window.bc128enc=enc;
-window.bcSvg=(s,f,c)=>{f=f||{};c=c||{w:50,pad:0};const P=enc(String(s)).map(x=>C128[x]);let m=20;for(const p of P)for(const ch of p)m+=+ch;
+window.bcSvg=(s,f,c)=>{f=f||{};c=c||{w:50,pad:0};const P=enc(String(s)).map(x=>C128[x]);let m=10;for(const p of P)for(const ch of p)m+=+ch;
 const dpi=+f.dpi||203,dot=25.4/dpi,avail=Math.max(5,((+c.w||50)-2*(+c.pad||0))*((+f.wp||100)/100)),k=Math.floor(avail/(m*dot)),wmm=k>=1?m*k*dot:avail;
-let x=10,r='';for(const p of P)for(let q=0;q<p.length;q++){const w=+p[q];if(q%2==0)r+=`<rect x="${x}" y="0" width="${w}" height="10"/>`;x+=w}
+let x=5,r='';for(const p of P)for(let q=0;q<p.length;q++){const w=+p[q];if(q%2==0)r+=`<rect x="${x}" y="0" width="${w}" height="10"/>`;x+=w}
 return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${m} 10" preserveAspectRatio="none" style="width:${wmm.toFixed(3)}mm;height:${+f.h||10}mm;display:block;margin:.4mm auto;shape-rendering:crispEdges;flex:none" fill="#000">${r}</svg>`};
 let ac=null;const get=()=>{try{ac=ac||new (window.AudioContext||window.webkitAudioContext)();if(ac.state=='suspended')ac.resume()}catch(x){}return ac};
 ['pointerdown','touchstart','keydown'].forEach(ev=>document.addEventListener(ev,()=>{get()},{passive:true,capture:true}));
