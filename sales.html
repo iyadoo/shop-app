@@ -1885,7 +1885,7 @@ for(const n of ['lock','logout']){const o=A[n];if(typeof o=='function')A[n]=(...
 (function(){
 const K='AIzaSyBhOpQYnTbqDBCUfb0c3_wG3y5tSZqR2Cg',P='posiyad-52ed7';
 const ROOT='projects/'+P+'/databases/(default)/documents',API='https://firestore.googleapis.com/v1/';
-const QK='fbq',AK='fbauth',SK='fbseed';
+const QK='fbq',AK='fbauth2',SK='fbseed';
 let Q=[];try{Q=JSON.parse(localStorage.getItem(QK)||'[]')}catch(x){}
 const st={run:false,last:+(localStorage.getItem('fblast')||0),err:'',seeding:false,seedN:0,seedT:0};
 const qsave=()=>{try{localStorage.setItem(QK,JSON.stringify(Q))}catch(x){}};
@@ -1897,7 +1897,7 @@ async function tok(force){let a=null;try{a=JSON.parse(localStorage.getItem(AK)||
 if(!force&&a&&a.id&&a.exp>Date.now()+60000)return a.id;
 let r;if(a&&a.rt){r=await fetch('https://securetoken.googleapis.com/v1/token?key='+K,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:'grant_type=refresh_token&refresh_token='+encodeURIComponent(a.rt),signal:tmo(15000)}).then(x=>x.json());
 if(r&&r.id_token){a={id:r.id_token,rt:r.refresh_token,exp:Date.now()+(+r.expires_in||3600)*1000};localStorage.setItem(AK,JSON.stringify(a));return a.id}}
-r=await fetch('https://identitytoolkit.googleapis.com/v1/accounts:signUp?key='+K,{method:'POST',headers:{'Content-Type':'application/json'},body:'{"returnSecureToken":true}',signal:tmo(15000)}).then(x=>x.json());
+const cf=(typeof sbCfg=='function'&&sbCfg())||{};if(!cf.email||!cf.pw)throw new Error('Firebase: لازم يكون البرنامج مربوط بحساب Supabase');const bd=JSON.stringify({email:cf.email,password:cf.pw,returnSecureToken:true}),IT='https://identitytoolkit.googleapis.com/v1/accounts:';r=await fetch(IT+'signInWithPassword?key='+K,{method:'POST',headers:{'Content-Type':'application/json'},body:bd,signal:tmo(15000)}).then(x=>x.json());if(r&&r.error&&/EMAIL_NOT_FOUND|INVALID_LOGIN_CREDENTIALS|INVALID_PASSWORD/.test(r.error.message||'')){const r2=await fetch(IT+'signUp?key='+K,{method:'POST',headers:{'Content-Type':'application/json'},body:bd,signal:tmo(15000)}).then(x=>x.json());if(r2&&r2.idToken)r=r2;else if(r2&&r2.error&&r2.error.message=='EMAIL_EXISTS')throw new Error('Firebase: كلمة المرور مختلفة عن حساب Supabase');else if(r2&&r2.error)throw new Error('Firebase: '+r2.error.message)}
 if(!r||!r.idToken)throw new Error((r&&r.error&&r.error.message)||'fb auth');
 a={id:r.idToken,rt:r.refreshToken,exp:Date.now()+(+r.expiresIn||3600)*1000};localStorage.setItem(AK,JSON.stringify(a));return a.id}
 async function req(path,opt,retry){const t=await tok(retry);opt=opt||{};opt.headers=Object.assign({},opt.headers||{},{'Content-Type':'application/json',Authorization:'Bearer '+t});opt.signal=opt.signal||tmo(30000);
